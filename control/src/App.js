@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { firestore } from './firebase'; // Importa tu configuración de Firestore
 import './DatePickerStyles.css'; // Importa tu archivo CSS aquí
+import Swal from 'sweetalert2';
 
 const Container = styled.div`
   display: flex;
@@ -177,11 +178,29 @@ function App() {
   };
 
   const handleDeleteActivity = async (id) => {
-    try {
-      await deleteDoc(doc(firestore, 'datos', id));
-      setActivities(activities.filter(activity => activity.id !== id));
-    } catch (error) {
-      console.error('Error al eliminar la actividad: ', error);
+    // Mostrar el cuadro de confirmación
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: '¡No podrás revertir esto!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#007bff',
+      confirmButtonText: 'Sí, eliminarlo'
+    });
+
+    // Si el usuario confirma la eliminación
+    if (result.isConfirmed) {
+      try {
+        await deleteDoc(doc(firestore, 'datos', id));
+        setActivities(activities.filter(activity => activity.id !== id));
+        // Mostrar un mensaje de éxito
+        Swal.fire('Eliminado', 'La actividad ha sido eliminada correctamente.', 'success');
+      } catch (error) {
+        console.error('Error al eliminar la actividad: ', error);
+        // Mostrar un mensaje de error
+        Swal.fire('Error', 'Se produjo un error al eliminar la actividad.', 'error');
+      }
     }
   };
 
