@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import styled from 'styled-components';
-import './DatePickerStyles.css';
+import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { firestore } from './firebase'; // Importa tu configuración de Firestore
+import './DatePickerStyles.css'; // Importa tu archivo CSS aquí
 
 const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   font-family: Arial, sans-serif;
-  background-color: #f4f4f9;
+  background-color: #f5f5f5;
   min-height: 100vh;
   padding: 20px;
 `;
@@ -19,21 +21,20 @@ const Header = styled.h1`
   margin-bottom: 20px;
 `;
 
-const DatePickerWrapper = styled.div`
-  margin: 20px 0;
-  display: flex;
-  align-items: center; /* Center the items horizontally */
-`;
-
-const Label = styled.label`
-  margin-right: 10px; /* Space between label and date picker */
-  color: #333;
+const MonthSelect = styled.select`
+  padding: 10px;
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: white;
+  font-size: 16px;
 `;
 
 const ActivityInputWrapper = styled.div`
-  margin: 20px 0;
   display: flex;
   align-items: center;
+  margin-bottom: 20px;
 `;
 
 const Input = styled.input`
@@ -51,6 +52,7 @@ const Button = styled.button`
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 
   &:hover {
     background-color: #0056b3;
@@ -58,9 +60,12 @@ const Button = styled.button`
 `;
 
 const ActivityListWrapper = styled.div`
-  margin: 20px 0;
   width: 100%;
   max-width: 600px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
 `;
 
 const ActivityList = styled.ul`
@@ -69,26 +74,82 @@ const ActivityList = styled.ul`
 `;
 
 const ActivityListItem = styled.li`
-  background-color: white;
   padding: 15px;
-  margin: 10px 0;
+  margin-bottom: 10px;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;
 
 const ActivityDate = styled.strong`
-  color: #333;
+  color: #007bff;
+  font-weight: bold;
 `;
 
-const MonthHeader = styled.h3`
-  color: #555;
-  margin: 20px 0 10px;
+const DeleteButton = styled.button`
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #c82333;
+  }
 `;
 
 function App() {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedDate, setSelectedDate] = useState(null);
   const [activity, setActivity] = useState('');
   const [activities, setActivities] = useState([]);
+  const [filteredActivities, setFilteredActivities] = useState([]);
+  const [dateRange, setDateRange] = useState({ startDate: null, endDate: null });
+
+  useEffect(() => {
+    const loadActivities = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(firestore, 'datos'));
+        const activitiesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setActivities(activitiesData);
+      } catch (error) {
+        console.error('Error al cargar actividades: ', error);
+      }
+    };
+    loadActivities();
+  }, []);
+
+  useEffect(() => {
+    if (selectedMonth) {
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const startDate = new Date(Date.UTC(year, month - 1, 1));
+      const endDate = new Date(Date.UTC(year, month, 0));
+      const filtered = activities.filter(activity => {
+        const activityDate = new Date(activity.date);
+        console.log(activityDate);
+        return activityDate >= startDate && activityDate <= endDate;
+      });
+      setFilteredActivities(filtered);
+    } else {
+      setFilteredActivities(activities);
+    }
+  }, [selectedMonth, activities]);
+
+  const handleMonthChange = (event) => {
+    const selectedValue = event.target.value;
+    setSelectedMonth(selectedValue);
+
+    const [year, month] = selectedValue.split('-').map(Number);
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+    setDateRange({ startDate, endDate });
+
+    setSelectedDate(null); // Reset selected date when month changes
+  };
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -98,65 +159,86 @@ function App() {
     setActivity(event.target.value);
   };
 
-  const handleAddActivity = () => {
-    const newActivity = { date: selectedDate, activity };
-    setActivities([...activities, newActivity]);
-    setActivity('');
-  };
-
-  const getMonthYear = (date) => {
-    const options = { year: 'numeric', month: 'long' };
-    return date.toLocaleDateString('es-ES', options);
-  };
-
-  const groupedActivities = activities.reduce((acc, activity) => {
-    const monthYear = getMonthYear(new Date(activity.date));
-    if (!acc[monthYear]) {
-      acc[monthYear] = [];
+  const handleAddActivity = async () => {
+    if (!selectedDate) {
+      alert('Por favor, selecciona una fecha.');
+      return;
     }
-    acc[monthYear].push(activity);
-    return acc;
-  }, {});
+
+    const newActivity = { date: selectedDate.toISOString().split('T')[0], activity };
+
+    try {
+      const docRef = await addDoc(collection(firestore, 'datos'), newActivity);
+      setActivities([...activities, { ...newActivity, id: docRef.id }]);
+      setActivity('');
+    } catch (error) {
+      console.error('Error al agregar la actividad: ', error);
+    }
+  };
+
+  const handleDeleteActivity = async (id) => {
+    try {
+      await deleteDoc(doc(firestore, 'datos', id));
+      setActivities(activities.filter(activity => activity.id !== id));
+    } catch (error) {
+      console.error('Error al eliminar la actividad: ', error);
+    }
+  };
 
   return (
     <Container>
       <Header>Registro de Actividades Diarias</Header>
 
-      <DatePickerWrapper>
-        <Label htmlFor="date-picker">Selecciona una Fecha:</Label>
-        <DatePicker
-          id="date-picker"
-          selected={selectedDate}
-          onChange={handleDateChange}
-          dateFormat="dd/MM/yyyy"
-          className="custom-datepicker"
-        />
-      </DatePickerWrapper>
+      <MonthSelect value={selectedMonth} onChange={handleMonthChange}>
+        <option value="">Selecciona un Mes</option>
+        <option value="2024-01">Enero</option>
+        <option value="2024-02">Febrero</option>
+        <option value="2024-03">Marzo</option>
+        <option value="2024-04">Abril</option>
+        <option value="2024-05">Mayo</option>
+        <option value="2024-06">Junio</option>
+        <option value="2024-07">Julio</option>
+        <option value="2024-08">Agosto</option>
+        <option value="2024-09">Septiembre</option>
+        <option value="2024-10">Octubre</option>
+        <option value="2024-11">Noviembre</option>
+        <option value="2024-12">Diciembre</option>
+      </MonthSelect>
 
-      <ActivityInputWrapper>
-        <Input
-          type="text"
-          value={activity}
-          onChange={handleActivityChange}
-          placeholder="Escribe tu actividad"
-        />
-        <Button onClick={handleAddActivity}>Agregar Actividad</Button>
-      </ActivityInputWrapper>
+      {selectedMonth && (
+        <>
+          <DatePicker
+            selected={selectedDate}
+            onChange={handleDateChange}
+            dateFormat="dd/MM/yyyy"
+            placeholderText="Selecciona una Fecha"
+            minDate={dateRange.startDate}
+            maxDate={dateRange.endDate}
+          />
+          <ActivityInputWrapper>
+            <Input
+              type="text"
+              value={activity}
+              onChange={handleActivityChange}
+              placeholder="Escribe tu actividad"
+            />
+            <Button onClick={handleAddActivity}>Agregar Actividad</Button>
+          </ActivityInputWrapper>
+        </>
+      )}
 
       <ActivityListWrapper>
         <h2>Actividades Guardadas</h2>
-        {Object.keys(groupedActivities).map((monthYear, index) => (
-          <div key={index}>
-            <MonthHeader>{monthYear}</MonthHeader>
-            <ActivityList>
-              {groupedActivities[monthYear].map((item, idx) => (
-                <ActivityListItem key={idx}>
-                  <ActivityDate>{new Date(item.date).toLocaleDateString('es-ES')}</ActivityDate>: {item.activity}
-                </ActivityListItem>
-              ))}
-            </ActivityList>
-          </div>
-        ))}
+        <ActivityList>
+          {filteredActivities.map((item) => (
+            <ActivityListItem key={item.id}>
+              <div>
+                <ActivityDate>{new Date(item.date).toLocaleDateString('es-ES', { timeZone: 'UTC' })}</ActivityDate>: {item.activity}
+              </div>
+              <DeleteButton onClick={() => handleDeleteActivity(item.id)}>Eliminar</DeleteButton>
+            </ActivityListItem>
+          ))}
+        </ActivityList>
       </ActivityListWrapper>
     </Container>
   );
