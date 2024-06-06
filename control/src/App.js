@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import styled from 'styled-components';
-import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { firestore } from './firebase'; // Importa tu configuración de Firestore
 import './DatePickerStyles.css'; // Importa tu archivo CSS aquí
 import Swal from 'sweetalert2';
@@ -69,19 +69,29 @@ const ActivityListWrapper = styled.div`
   padding: 20px;
 `;
 
-const ActivityList = styled.ul`
-  list-style-type: none;
-  padding: 0;
+const ActivityTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  /* Ajusta el ancho de la tabla aquí */
 `;
 
-const ActivityListItem = styled.li`
-  padding: 15px;
-  margin-bottom: 10px;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+
+const ActivityTableHead = styled.thead`
+background-color: #007bff;
+color: white;
+/* Ajusta el ancho del encabezado de la tabla aquí */
+`;
+
+const ActivityTableBody = styled.tbody``;
+
+const ActivityTableRow = styled.tr``;
+
+const ActivityTableHeader = styled.th`
+padding: 15px; /* Ajusta el padding de las celdas del encabezado aquí */
+`;
+
+const ActivityTableCell = styled.td`
+padding: 15px; /* Ajusta el padding de las celdas de la tabla aquí */
 `;
 
 const ActivityDate = styled.strong`
@@ -103,6 +113,24 @@ const DeleteButton = styled.button`
   }
 `;
 
+const Checkbox = styled.input`
+  margin-right: 10px;
+`;
+
+const CompleteButton = styled.button`
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #218838;
+  }
+`;
+
 function App() {
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
@@ -120,6 +148,7 @@ function App() {
       } catch (error) {
         console.error('Error al cargar actividades: ', error);
       }
+      console.log(activities);
     };
     loadActivities();
   }, []);
@@ -129,16 +158,19 @@ function App() {
       const [year, month] = selectedMonth.split('-').map(Number);
       const startDate = new Date(Date.UTC(year, month - 1, 1));
       const endDate = new Date(Date.UTC(year, month, 0));
-      const filtered = activities.filter(activity => {
-        const activityDate = new Date(activity.date);
-        console.log(activityDate);
-        return activityDate >= startDate && activityDate <= endDate;
-      });
+      const filtered = activities
+        .filter(activity => {
+          const activityDate = new Date(activity.date);
+          return activityDate >= startDate && activityDate <= endDate;
+        })
+        .sort((a, b) => new Date(a.date) - new Date(b.date)); // Ordenar las actividades por fecha
       setFilteredActivities(filtered);
     } else {
-      setFilteredActivities(activities);
+      const sortedActivities = [...activities].sort((a, b) => new Date(a.date) - new Date(b.date)); // Ordenar las actividades por fecha
+      setFilteredActivities(sortedActivities);
     }
   }, [selectedMonth, activities]);
+
 
   const handleMonthChange = (event) => {
     const selectedValue = event.target.value;
@@ -149,7 +181,7 @@ function App() {
     const endDate = new Date(year, month, 0);
     setDateRange({ startDate, endDate });
 
-    setSelectedDate(null); // Reset selected date when month changes
+    setSelectedDate(null);
   };
 
   const handleDateChange = (date) => {
@@ -166,11 +198,12 @@ function App() {
       return;
     }
 
-    const newActivity = { date: selectedDate.toISOString().split('T')[0], activity };
+    const newActivity = { date: selectedDate.toISOString().split('T')[0], activity, completed: false };
 
     try {
       const docRef = await addDoc(collection(firestore, 'datos'), newActivity);
-      setActivities([...activities, { ...newActivity, id: docRef.id }]);
+      const activityWithId = { ...newActivity, id: docRef.id };
+      setActivities([...activities, activityWithId]);
       setActivity('');
     } catch (error) {
       console.error('Error al agregar la actividad: ', error);
@@ -178,7 +211,6 @@ function App() {
   };
 
   const handleDeleteActivity = async (id) => {
-    // Mostrar el cuadro de confirmación
     const result = await Swal.fire({
       title: '¿Estás seguro?',
       text: '¡No podrás revertir esto!',
@@ -189,7 +221,6 @@ function App() {
       confirmButtonText: 'Sí, eliminarlo'
     });
 
-    // Si el usuario confirma la eliminación
     if (result.isConfirmed) {
       try {
         await deleteDoc(doc(firestore, 'datos', id));
@@ -201,6 +232,21 @@ function App() {
         // Mostrar un mensaje de error
         Swal.fire('Error', 'Se produjo un error al eliminar la actividad.', 'error');
       }
+    }
+  };
+
+  const handleCompleteActivity = async (itemId) => {
+    const activityRef = doc(firestore, 'datos', itemId);
+    try {
+      await updateDoc(activityRef, { estado: true });
+      const updatedActivities = activities.map((item) =>
+        item.id === itemId ? { ...item, completed: true } : item // Marcar la actividad como completada
+      );
+      setActivities(updatedActivities);
+      Swal.fire('¡Éxito!', 'Actividad finalizada con éxito.', 'success'); // Mostrar notificación de éxito
+    } catch (error) {
+      console.error('Error al marcar la actividad como completada: ', error);
+      Swal.fire('Error', 'Se produjo un error al marcar la actividad como completada.', 'error'); // Mostrar notificación de error
     }
   };
 
@@ -248,16 +294,34 @@ function App() {
 
       <ActivityListWrapper>
         <h2>Actividades Guardadas</h2>
-        <ActivityList>
-          {filteredActivities.map((item) => (
-            <ActivityListItem key={item.id}>
-              <div>
-                <ActivityDate>{new Date(item.date).toLocaleDateString('es-ES', { timeZone: 'UTC' })}</ActivityDate>: {item.activity}
-              </div>
-              <DeleteButton onClick={() => handleDeleteActivity(item.id)}>Eliminar</DeleteButton>
-            </ActivityListItem>
-          ))}
-        </ActivityList>
+        <ActivityTable>
+          <ActivityTableHead>
+            <tr>
+              <ActivityTableHeader>Fecha</ActivityTableHeader>
+              <ActivityTableHeader>Actividad</ActivityTableHeader>
+              <ActivityTableHeader>Estado</ActivityTableHeader>
+              <ActivityTableHeader>Acción 1</ActivityTableHeader>
+              <ActivityTableHeader>Acción 2</ActivityTableHeader>
+            </tr>
+          </ActivityTableHead>
+          <ActivityTableBody>
+            {filteredActivities.map((item) => (
+              <ActivityTableRow key={item.id}>
+                <ActivityTableCell>
+                  <ActivityDate>{new Date(item.date).toLocaleDateString('es-ES', { timeZone: 'UTC' })}</ActivityDate>
+                </ActivityTableCell>
+                <ActivityTableCell>{item.activity}</ActivityTableCell>
+                <ActivityTableCell>{item.estado ? 'FINALIZADO' : 'NO FINALIZADO'}</ActivityTableCell> {/* Aquí se muestra el estado */}
+                <ActivityTableCell>
+                  <CompleteButton onClick={() => handleCompleteActivity(item.id)}>Finalizar</CompleteButton>
+                </ActivityTableCell>
+                <ActivityTableCell>
+                  <DeleteButton onClick={() => handleDeleteActivity(item.id)}>Eliminar</DeleteButton>
+                </ActivityTableCell>
+              </ActivityTableRow>
+            ))}
+          </ActivityTableBody>
+        </ActivityTable>
       </ActivityListWrapper>
     </Container>
   );
