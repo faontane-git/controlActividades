@@ -6,6 +6,7 @@ import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase
 import { firestore } from './firebase'; // Importa tu configuración de Firestore
 import './DatePickerStyles.css'; // Importa tu archivo CSS aquí
 import Swal from 'sweetalert2';
+import ReactHTMLTableToExcel from 'react-html-table-to-excel';
 
 const Container = styled.div`
   display: flex;
@@ -243,7 +244,7 @@ function App() {
         item.id === itemId ? { ...item, completed: true } : item // Marcar la actividad como completada
       );
       setActivities(updatedActivities);
-      Swal.fire('¡Éxito!', 'Actividad finalizada con éxito.', 'success'); // Mostrar notificación de éxito
+      Swal.fire('¡Éxito!', 'Actividad finalizada con éxito, eres un crack.', 'success'); // Mostrar notificación de éxito
     } catch (error) {
       console.error('Error al marcar la actividad como completada: ', error);
       Swal.fire('Error', 'Se produjo un error al marcar la actividad como completada.', 'error'); // Mostrar notificación de error
@@ -273,6 +274,7 @@ function App() {
       {selectedMonth && (
         <>
           <DatePicker
+            id="datePicker"
             selected={selectedDate}
             onChange={handleDateChange}
             dateFormat="dd/MM/yyyy"
@@ -280,7 +282,8 @@ function App() {
             minDate={dateRange.startDate}
             maxDate={dateRange.endDate}
           />
-          <ActivityInputWrapper>
+
+          <ActivityInputWrapper style={{ marginTop: '20px' }}>
             <Input
               type="text"
               value={activity}
