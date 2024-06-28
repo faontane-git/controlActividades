@@ -6,7 +6,9 @@ import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase
 import { firestore } from './firebase'; // Importa tu configuración de Firestore
 import './DatePickerStyles.css'; // Importa tu archivo CSS aquí
 import Swal from 'sweetalert2';
- 
+import * as XLSX from 'xlsx'; // Importa xlsx para manejar archivos Excel
+import ReactModal from 'react-modal';
+
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -62,7 +64,7 @@ const Button = styled.button`
 
 const ActivityListWrapper = styled.div`
   width: 100%;
-  max-width: 600px;
+  max-width: 800px;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -72,14 +74,11 @@ const ActivityListWrapper = styled.div`
 const ActivityTable = styled.table`
   width: 100%;
   border-collapse: collapse;
-  /* Ajusta el ancho de la tabla aquí */
 `;
 
-
 const ActivityTableHead = styled.thead`
-background-color: #007bff;
-color: white;
-/* Ajusta el ancho del encabezado de la tabla aquí */
+  background-color: #007bff;
+  color: white;
 `;
 
 const ActivityTableBody = styled.tbody``;
@@ -87,11 +86,11 @@ const ActivityTableBody = styled.tbody``;
 const ActivityTableRow = styled.tr``;
 
 const ActivityTableHeader = styled.th`
-padding: 15px; /* Ajusta el padding de las celdas del encabezado aquí */
+  padding: 15px;
 `;
 
 const ActivityTableCell = styled.td`
-padding: 15px; /* Ajusta el padding de las celdas de la tabla aquí */
+  padding: 15px;
 `;
 
 const ActivityDate = styled.strong`
@@ -104,12 +103,26 @@ const DeleteButton = styled.button`
   color: white;
   border: none;
   border-radius: 4px;
-  padding: 5px 10px;
+  padding: 10px 20px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 
   &:hover {
     background-color: #c82333;
+  }
+`;
+
+const ModifyButton = styled.button`
+  padding: 10px 20px;
+  background-color: #FFC107;  
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #FFA000;
   }
 `;
 
@@ -122,13 +135,77 @@ const CompleteButton = styled.button`
   color: white;
   border: none;
   border-radius: 4px;
-  padding: 5px 10px;
+  padding: 10px 20px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 
   &:hover {
     background-color: #218838;
   }
+`;
+
+const ModalWrapper = styled(ReactModal)`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 400px;
+  max-width: 90%;
+`;
+
+const ModalHeader = styled.h2`
+  margin-top: 0;
+`;
+
+const ModalButton = styled.button`
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+
+  &:hover {
+    background-color: #0056b3;
+  }
+`;
+
+const CloseButton = styled.button`
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+
+  &:hover {
+    background-color: #c82333;
+  }
+`;
+
+const FilterSelect = styled.select`
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+`;
+
+const GenerateExcelButton = styled(Button)`
+  margin-top: 20px;
 `;
 
 function ActividadesPage() {
@@ -138,6 +215,11 @@ function ActividadesPage() {
   const [activities, setActivities] = useState([]);
   const [filteredActivities, setFilteredActivities] = useState([]);
   const [dateRange, setDateRange] = useState({ startDate: null, endDate: null });
+  const [editingActivity, setEditingActivity] = useState(null);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [filterOption, setFilterOption] = useState('all');
+  const [selectedActivityIndex, setSelectedActivityIndex] = useState(null);
+  const [editableActivity, setEditableActivity] = useState({ date: null, activity: '', completed: false });
 
   useEffect(() => {
     const loadActivities = async () => {
@@ -148,7 +230,6 @@ function ActividadesPage() {
       } catch (error) {
         console.error('Error al cargar actividades: ', error);
       }
-      console.log(activities);
     };
     loadActivities();
   }, []);
@@ -163,14 +244,13 @@ function ActividadesPage() {
           const activityDate = new Date(activity.date);
           return activityDate >= startDate && activityDate <= endDate;
         })
-        .sort((a, b) => new Date(a.date) - new Date(b.date)); // Ordenar las actividades por fecha
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
       setFilteredActivities(filtered);
     } else {
-      const sortedActivities = [...activities].sort((a, b) => new Date(a.date) - new Date(b.date)); // Ordenar las actividades por fecha
+      const sortedActivities = [...activities].sort((a, b) => new Date(a.date) - new Date(b.date));
       setFilteredActivities(sortedActivities);
     }
   }, [selectedMonth, activities]);
-
 
   const handleMonthChange = (event) => {
     const selectedValue = event.target.value;
@@ -225,14 +305,20 @@ function ActividadesPage() {
       try {
         await deleteDoc(doc(firestore, 'datos', id));
         setActivities(activities.filter(activity => activity.id !== id));
-        // Mostrar un mensaje de éxito
-        Swal.fire('Eliminado', 'La actividad ha sido eliminada correctamente.', 'success');
+        Swal.fire('Eliminado', 'La actividad ha sido eliminada correctamente.', 'success')
+          .then(() => {
+            window.location.reload(); // Recargar la página después de eliminar
+          });
       } catch (error) {
         console.error('Error al eliminar la actividad: ', error);
-        // Mostrar un mensaje de error
         Swal.fire('Error', 'Se produjo un error al eliminar la actividad.', 'error');
       }
     }
+  };
+
+
+  const handleFilterChange = (event) => {
+    setFilterOption(event.target.value);
   };
 
   const handleCompleteActivity = async (itemId) => {
@@ -240,15 +326,74 @@ function ActividadesPage() {
     try {
       await updateDoc(activityRef, { estado: true });
       const updatedActivities = activities.map((item) =>
-        item.id === itemId ? { ...item, completed: true } : item // Marcar la actividad como completada
+        item.id === itemId ? { ...item, completed: true } : item
       );
       setActivities(updatedActivities);
-      Swal.fire('¡Éxito!', 'Actividad finalizada con éxito, eres un crack.', 'success'); // Mostrar notificación de éxito
+      Swal.fire('¡Éxito!', 'Actividad finalizada con éxito, eres un crack.', 'success')
+        .then(() => {
+          window.location.reload(); // Recargar la página después de marcar como completada
+        });
     } catch (error) {
       console.error('Error al marcar la actividad como completada: ', error);
-      Swal.fire('Error', 'Se produjo un error al marcar la actividad como completada.', 'error'); // Mostrar notificación de error
+      Swal.fire('Error', 'Se produjo un error al marcar la actividad como completada.', 'error');
     }
   };
+
+
+  const handleOpenModal = (activity) => {
+    setEditingActivity(activity);
+    setSelectedDate(new Date(activity.date));
+    setActivity(activity.activity);
+    setModalIsOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setEditingActivity(null);
+    setSelectedDate(null);
+    setActivity('');
+    setModalIsOpen(false);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingActivity) return;
+
+    const updatedActivity = {
+      ...editingActivity,
+      date: selectedDate.toISOString().split('T')[0],
+      activity,
+    };
+
+    try {
+      const activityRef = doc(firestore, 'datos', editingActivity.id);
+      await updateDoc(activityRef, updatedActivity);
+      const updatedActivities = activities.map((item) =>
+        item.id === editingActivity.id ? updatedActivity : item
+      );
+      setActivities(updatedActivities);
+      handleCloseModal();
+      Swal.fire('¡Éxito!', 'Actividad modificada con éxito.', 'success');
+    } catch (error) {
+      console.error('Error al modificar la actividad: ', error);
+      Swal.fire('Error', 'Se produjo un error al modificar la actividad.', 'error');
+    }
+  };
+
+  const handleGenerateExcel = () => {
+    const data = filteredActivities.map(item => ({
+      Fecha: new Date(item.date).toLocaleDateString('es-ES', { timeZone: 'UTC' }),
+      Actividad: item.activity,
+      Estado: item.estado ? 'FINALIZADO' : 'NO FINALIZADO'
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Actividades');
+
+    const fileName = 'actividades.xlsx';
+    XLSX.writeFile(wb, fileName);
+  };
+
 
   return (
     <Container>
@@ -296,6 +441,14 @@ function ActividadesPage() {
 
       <ActivityListWrapper>
         <h2>Actividades Guardadas</h2>
+        <div>
+          <FilterSelect value={filterOption} onChange={handleFilterChange}>
+            <option value="all">Mostrar Todas</option>
+            <option value="completed">Mostrar Finalizadas</option>
+            <option value="uncompleted">Mostrar No Finalizadas</option>
+          </FilterSelect>
+        </div>
+        {/*Tabla de Actividades*/}
         <ActivityTable>
           <ActivityTableHead>
             <tr>
@@ -304,27 +457,62 @@ function ActividadesPage() {
               <ActivityTableHeader>Estado</ActivityTableHeader>
               <ActivityTableHeader>Acción 1</ActivityTableHeader>
               <ActivityTableHeader>Acción 2</ActivityTableHeader>
+              <ActivityTableHeader>Acción 3</ActivityTableHeader>
             </tr>
           </ActivityTableHead>
           <ActivityTableBody>
-            {filteredActivities.map((item) => (
-              <ActivityTableRow key={item.id}>
-                <ActivityTableCell>
-                  <ActivityDate>{new Date(item.date).toLocaleDateString('es-ES', { timeZone: 'UTC' })}</ActivityDate>
-                </ActivityTableCell>
-                <ActivityTableCell>{item.activity}</ActivityTableCell>
-                <ActivityTableCell>{item.estado ? 'FINALIZADO' : 'NO FINALIZADO'}</ActivityTableCell> {/* Aquí se muestra el estado */}
-                <ActivityTableCell>
-                  <CompleteButton onClick={() => handleCompleteActivity(item.id)}>Finalizar</CompleteButton>
-                </ActivityTableCell>
-                <ActivityTableCell>
-                  <DeleteButton onClick={() => handleDeleteActivity(item.id)}>Eliminar</DeleteButton>
-                </ActivityTableCell>
-              </ActivityTableRow>
-            ))}
+            {filteredActivities.map((item, index) => {
+              if (filterOption === 'completed' && !item.estado) return null; // Filtrar actividades no finalizadas si se está mostrando solo finalizadas
+              if (filterOption === 'uncompleted' && item.estado) return null; // Filtrar actividades finalizadas si se está mostrando solo no finalizadas
+              return (
+                <ActivityTableRow key={item.id}>
+                  <ActivityTableCell>
+                    <ActivityDate>{new Date(item.date).toLocaleDateString('es-ES', { timeZone: 'UTC' })}</ActivityDate>
+                  </ActivityTableCell>
+                  <ActivityTableCell>{item.activity}</ActivityTableCell>
+                  <ActivityTableCell>{item.estado ? 'FINALIZADO' : 'NO FINALIZADO'}</ActivityTableCell>
+                  <ActivityTableCell>
+                    <CompleteButton onClick={() => handleCompleteActivity(item.id)}>Finalizar</CompleteButton>
+                  </ActivityTableCell>
+                  <ActivityTableCell>
+                    <ModifyButton onClick={() => handleOpenModal(index)}>Modificar</ModifyButton>
+                  </ActivityTableCell>
+                  <ActivityTableCell>
+                    <DeleteButton onClick={() => handleDeleteActivity(item.id)}>Eliminar</DeleteButton>
+                  </ActivityTableCell>
+                </ActivityTableRow>
+              );
+            })}
           </ActivityTableBody>
         </ActivityTable>
+
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+          <GenerateExcelButton onClick={handleGenerateExcel}>Generar Excel</GenerateExcelButton>
+        </div>
       </ActivityListWrapper>
+
+      <ModalWrapper
+        isOpen={modalIsOpen}
+        onRequestClose={handleCloseModal}
+        contentLabel="Modificar Actividad"
+      >
+        <ModalHeader>Modificar Actividad</ModalHeader>
+        <DatePicker
+          selected={selectedDate}
+          onChange={handleDateChange}
+          dateFormat="dd/MM/yyyy"
+          placeholderText="Selecciona una Fecha"
+        />
+        <Input
+          type="text"
+          value={activity}
+          onChange={handleActivityChange}
+          placeholder="Escribe tu actividad"
+          style={{ width: '100%', marginTop: '20px' }}
+        />
+        <ModalButton onClick={handleSaveEdit}>Guardar Cambios</ModalButton>
+        <CloseButton onClick={handleCloseModal}>Cancelar</CloseButton>
+      </ModalWrapper>
     </Container>
   );
 }
