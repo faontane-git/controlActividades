@@ -13,6 +13,7 @@ import septiembre from '../../../src/recursos/septiembre.jpg';
 import octubre from '../../../src/recursos/octubre.png';
 import noviembre from '../../../src/recursos/noviembre.jpg';
 import diciembre from '../../../src/recursos/diciembre.jpg';
+import logo from '../../../src/recursos/logo.png';
 
 const Container = styled.div`
   display: flex;
@@ -74,7 +75,7 @@ const months = [
   { name: 'Abril', value: '2024-04', image: abril },
   { name: 'Mayo', value: '2024-05', image: mayo },
   { name: 'Junio', value: '2024-06', image: junio },
-  { name: 'Julio', value: '2024-07', image:  julio  },
+  { name: 'Julio', value: '2024-07', image: julio },
   { name: 'Agosto', value: '2024-08', image: agosto },
   { name: 'Septiembre', value: '2024-09', image: septiembre },
   { name: 'Octubre', value: '2024-10', image: octubre },
@@ -85,11 +86,14 @@ const months = [
 const HomePage = () => {
   return (
     <Container>
+      <div className="logo-container">
+        <img src={logo} alt="Logo" className="logo" style={{ width: '100px', height: 'auto' }} />
+      </div>
       <Header>Bienvenido</Header>
       <SubHeader>Seleccione un mes</SubHeader>
       <CardGrid>
         {months.map((month) => (
-          <Link key={month.value} to={`/registro/${month.value}`}>
+          <Link key={month.value} to={`/actividades/${month.value}`}>
             <Card>
               <CardContent>
                 {month.name}
@@ -98,6 +102,7 @@ const HomePage = () => {
             </Card>
           </Link>
         ))}
+
       </CardGrid>
     </Container>
   );

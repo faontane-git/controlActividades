@@ -9,10 +9,12 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/actividades" element={<ActividadesPage />} />
+        <Route path="/actividades/:month" element={<ActividadesPage />} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
+
+ 
