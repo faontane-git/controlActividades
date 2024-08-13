@@ -23,6 +23,7 @@ const Container = styled.div`
   background-color: #f5f5f5;
   min-height: 100vh;
   padding: 20px;
+  position: relative; /* Necesario para posicionar el botón en la esquina superior derecha */
 `;
 
 const Header = styled.h1`
@@ -68,6 +69,29 @@ const CardContent = styled.div`
   padding: 10px;
 `;
 
+const StyledLink = styled(Link)`
+  text-decoration: none;
+  color: inherit; /* Hereda el color del Card */
+`;
+
+const Button = styled.button`
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  position: absolute; /* Posiciona el botón de manera absoluta */
+  top: 20px; /* Ajusta la distancia desde la parte superior */
+  right: 20px; /* Ajusta la distancia desde la derecha */
+  
+  &:hover {
+    background-color: #0056b3;
+  }
+`;
+
 const months = [
   { name: 'Enero', value: '2024-01', image: enero },
   { name: 'Febrero', value: '2024-02', image: febrero },
@@ -94,17 +118,19 @@ const HomePage = () => {
       <SubHeader>Seleccione un mes</SubHeader>
       <CardGrid>
         {months.map((month) => (
-          <Link key={month.value} to={`/actividades/${month.value}`}>
+          <StyledLink key={month.value} to={`/actividades/${month.value}`}>
             <Card>
+              <CardImage src={month.image} alt={month.name} />
               <CardContent>
                 {month.name}
               </CardContent>
-              <CardImage src={month.image} alt={month.name} />
             </Card>
-          </Link>
+          </StyledLink>
         ))}
-
       </CardGrid>
+      <Link to="/opciones">
+        <Button>Opciones</Button>
+      </Link>
     </Container>
   );
 };
