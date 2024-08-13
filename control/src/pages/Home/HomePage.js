@@ -89,6 +89,7 @@ const HomePage = () => {
       <div className="logo-container">
         <img src={logo} alt="Logo" className="logo" style={{ width: '100px', height: 'auto' }} />
       </div>
+      <Header>Sistema de control de actividades</Header>
       <Header>Bienvenido</Header>
       <SubHeader>Seleccione un mes</SubHeader>
       <CardGrid>

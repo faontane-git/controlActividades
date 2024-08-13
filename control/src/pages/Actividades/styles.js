@@ -10,8 +10,8 @@ const styles = {
     font-family: Arial, sans-serif;
     background-color: #f5f5f5;
     min-height: 100vh;
-    padding: 20px;
-  `,
+    padding-bottom: 100px; 
+    `,
   Header: styled.h1`
     color: #333;
     margin-bottom: 20px;
@@ -199,6 +199,15 @@ const styles = {
     width: 100%;
     margin: 20px 0;
   `,
+  Footer: styled.div`
+  background-color: #000;
+  color: #fff;
+  text-align: center;
+  padding: 10px 0;
+  position: fixed;
+  width: 100%;
+  bottom: 0;
+`,
 };
 
 export default styles;
