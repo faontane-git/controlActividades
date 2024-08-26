@@ -1,23 +1,29 @@
 import React, { useState } from 'react';
+import PizZip from 'pizzip';
+import Docxtemplater from 'docxtemplater';
+import { saveAs } from 'file-saver';
+import actividades from '../../../src/recursos/actividades.docx';
 import styled from 'styled-components';
 
 const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
+  background-color: #f0f2f5;
   min-height: 100vh;
   padding: 20px;
 `;
 
 const Header = styled.h1`
   color: #333;
+  font-size: 28px;
   margin-bottom: 20px;
 `;
 
 const Table = styled.table`
-  width: 100%;
+  width: 80%;
   max-width: 800px;
   border-collapse: collapse;
   margin-bottom: 20px;
@@ -28,6 +34,7 @@ const TableHeader = styled.th`
   color: white;
   padding: 10px;
   text-align: left;
+  font-size: 16px;
 `;
 
 const TableRow = styled.tr`
@@ -41,76 +48,83 @@ const TableRow = styled.tr`
 const TableCell = styled.td`
   padding: 10px;
   border: 1px solid #ddd;
+  font-size: 14px;
 `;
 
 const EditableInput = styled.input`
   width: 100%;
   padding: 8px;
   border: none;
+  font-size: 14px;
   background-color: transparent;
   &:focus {
     outline: none;
-    background-color: #f0f0f0;
+    background-color: #e0e0e0;
   }
 `;
 
-const FileInput = styled.input`
-  margin-top: 20px;
-`;
-
 const SubmitButton = styled.button`
-  background-color: #007bff;
+  background-color: #28a745;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 5px;
   padding: 10px 20px;
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s ease;
   
   &:hover {
-    background-color: #0056b3;
+    background-color: #218838;
   }
 `;
 
-const OptionButton = styled.a`
-  text-decoration: none;
-  color: #007bff;
-  font-size: 16px;
-  margin-top: 20px;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const OptionsPage = () => {
-  const [file, setFile] = useState(null);
+const App = () => {
   const [bosses, setBosses] = useState([
-    { name: 'Juan Pérez', position: 'Director' },
-    { name: 'Ana Gómez', position: 'Jefa de Finanzas' },
-    { name: 'Carlos López', position: 'Jefe de Operaciones' },
+    { name: 'Ing. Lenin Eduardo Freire Cobo', position: 'Gerente de Tecnologías y Sistemas De Información' },
+    { name: 'Ing. José Francisco Rodríguez Rojas', position: 'Director de Desarrollo de Aplicaciones' },
   ]);
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
-
-  const handleSubmit = () => {
-    // Aquí podrías implementar la lógica para manejar el archivo subido
-    console.log('Archivo subido:', file);
-  };
-
   const handleInputChange = (index, field, value) => {
-    const updatedBosses = bosses.map((boss, i) => (
+    const updatedBosses = bosses.map((boss, i) =>
       i === index ? { ...boss, [field]: value } : boss
-    ));
+    );
     setBosses(updatedBosses);
+  };
+
+  const generateDocument = () => {
+    fetch(actividades)
+      .then(response => response.arrayBuffer())
+      .then(content => {
+        const zip = new PizZip(content);
+        const doc = new Docxtemplater(zip, {
+          paragraphLoop: true,
+          linebreaks: true,
+        });
+
+        // Puedes ajustar aquí el dato para reemplazar el marcador de posición {JEFE_INMEDIATO}
+        const jefeInmediato = bosses[0].name; // Por ejemplo, usamos el nombre del primer jefe
+
+        doc.setData({ JEFE_INMEDIATO: jefeInmediato });
+
+        try {
+          doc.render();
+        } catch (error) {
+          console.error(error);
+        }
+
+        const out = doc.getZip().generate({
+          type: "blob",
+          mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        });
+
+        saveAs(out, "documento_generado.docx");
+      })
+      .catch(error => console.error("Error al cargar la plantilla:", error));
   };
 
   return (
     <Container>
-      <Header>Opciones</Header>
+      <Header>Generar Documento de Word desde Plantilla</Header>
       <Table>
         <thead>
           <tr>
@@ -139,11 +153,9 @@ const OptionsPage = () => {
           ))}
         </tbody>
       </Table>
-      <FileInput type="file" onChange={handleFileChange} />
-      <SubmitButton onClick={handleSubmit}>Subir Documento</SubmitButton>
-      <OptionButton href="/home">Volver a la Página Principal</OptionButton>
+      <SubmitButton onClick={generateDocument}>Descargar Documento</SubmitButton>
     </Container>
   );
 };
 
-export default OptionsPage;
+export default App;
