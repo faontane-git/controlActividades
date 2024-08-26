@@ -4,6 +4,7 @@ import Docxtemplater from 'docxtemplater';
 import { saveAs } from 'file-saver';
 import actividades from '../../../src/recursos/actividades.docx';
 import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 
 const Container = styled.div`
   display: flex;
@@ -78,6 +79,17 @@ const SubmitButton = styled.button`
   }
 `;
 
+const BackLink = styled(Link)`
+  text-decoration: none;
+  color: #007bff;
+  font-size: 16px;
+  margin-top: 20px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
 const App = () => {
   const [bosses, setBosses] = useState([
     { name: 'Ing. Lenin Eduardo Freire Cobo', position: 'Gerente de Tecnologías y Sistemas De Información' },
@@ -101,7 +113,6 @@ const App = () => {
           linebreaks: true,
         });
 
-        // Puedes ajustar aquí el dato para reemplazar el marcador de posición {JEFE_INMEDIATO}
         const jefeInmediato = bosses[0].name; // Por ejemplo, usamos el nombre del primer jefe
 
         doc.setData({ JEFE_INMEDIATO: jefeInmediato });
@@ -154,6 +165,7 @@ const App = () => {
         </tbody>
       </Table>
       <SubmitButton onClick={generateDocument}>Descargar Documento</SubmitButton>
+      <BackLink to="/">Volver al Menú Principal</BackLink>
     </Container>
   );
 };

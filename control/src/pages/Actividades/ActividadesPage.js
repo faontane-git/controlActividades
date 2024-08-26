@@ -11,13 +11,17 @@ import ReactModal from 'react-modal';
 import { useParams, Link } from 'react-router-dom';
 import styles from './styles';
 import logo from '../../../src/recursos/logo.png';
+import PizZip from 'pizzip';
+import Docxtemplater from 'docxtemplater';
+import { saveAs } from 'file-saver';
+import actividades from '../../../src/recursos/actividades.docx';
 
 const {
   Container, Header, MonthSelect, ActivityInputWrapper, Input, Button, ActivityListWrapper,
   ActivityTable, ActivityTableHead, ActivityTableBody, ActivityTableRow, ActivityTableHeader,
   ActivityTableCell, ActivityDate, DeleteButton, ModifyButton, Checkbox, CompleteButton,
   ModalWrapper, MonthSelectWrapper, ModalHeader, ModalButton, CloseButton, FilterSelect,
-  GenerateExcelButton, FilterSelectWrapper,Footer
+  GenerateExcelButton, FilterSelectWrapper, Footer
 } = styles;
 
 function ActividadesPage() {
@@ -201,6 +205,51 @@ function ActividadesPage() {
     return monthName.charAt(0).toUpperCase() + monthName.slice(1);
   };
 
+  const [bosses, setBosses] = useState([
+    { name: 'Ing. Lenin Eduardo Freire Cobo', position: 'Gerente de Tecnologías y Sistemas De Información' },
+    { name: 'Ing. José Francisco Rodríguez Rojas', position: 'Director de Desarrollo de Aplicaciones' },
+  ]);
+
+  const generateReport = () => {
+    fetch(actividades)
+      .then(response => response.arrayBuffer())
+      .then(content => {
+        const zip = new PizZip(content);
+        const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
+
+        // Aquí puedes reemplazar los marcadores de posición en el archivo Word
+        const reportData = {
+          // Reemplaza los siguientes valores con los datos que necesitas
+          JefeInmediato: bosses[0].name,
+          Actividades: filteredActivities.map(activity => ({
+            Fecha: new Date(activity.date).toLocaleDateString('es-ES', { timeZone: 'UTC' }),
+            Actividad: activity.activity,
+            Estado: activity.estado ? 'FINALIZADO' : 'NO FINALIZADO'
+          }))
+        };
+
+        doc.setData(reportData);
+
+        try {
+          doc.render();
+        } catch (error) {
+          console.error('Error al renderizar el documento:', error);
+          return;
+        }
+
+        const out = doc.getZip().generate({
+          type: "blob",
+          mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        });
+
+        saveAs(out, "reporte_generado.docx");
+      })
+      .catch(error => {
+        console.error('Error al cargar la plantilla:', error);
+      });
+  };
+
+
   return (
     <Container>
       <div className="logo-container">
@@ -227,18 +276,15 @@ function ActividadesPage() {
       </ActivityInputWrapper>
 
       <FilterSelectWrapper>
-        {/*
-        <FilterSelect value={filterOption} onChange={handleFilterChange}>
-          <option value="all">Todos</option>
-          <option value="completed">Completados</option>
-          <option value="incomplete">Pendientes</option>
-        </FilterSelect>
-        */}
         <GenerateExcelButton onClick={handleGenerateExcel}>
           Generar Excel
         </GenerateExcelButton>
+        <div style={{ marginLeft: '10px' }}>
+          <GenerateExcelButton onClick={generateReport}>
+            Generar Reporte
+          </GenerateExcelButton>
+        </div>
       </FilterSelectWrapper>
-
 
       <ActivityListWrapper>
         <Header style={{ textAlign: 'center' }}>Lista de actividades del mes</Header>
@@ -275,8 +321,6 @@ function ActividadesPage() {
           </ActivityTableBody>
         </ActivityTable>
       </ActivityListWrapper>
-
-
 
       <ReactModal
         isOpen={modalIsOpen}
