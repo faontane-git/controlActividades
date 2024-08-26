@@ -17,7 +17,7 @@ const {
   ActivityTable, ActivityTableHead, ActivityTableBody, ActivityTableRow, ActivityTableHeader,
   ActivityTableCell, ActivityDate, DeleteButton, ModifyButton, Checkbox, CompleteButton,
   ModalWrapper, MonthSelectWrapper, ModalHeader, ModalButton, CloseButton, FilterSelect,
-  GenerateExcelButton, FilterSelectWrapper
+  GenerateExcelButton, FilterSelectWrapper,Footer
 } = styles;
 
 function ActividadesPage() {
@@ -204,7 +204,7 @@ function ActividadesPage() {
   return (
     <Container>
       <div className="logo-container">
-        <Link to="/">  
+        <Link to="/">
           <img src={logo} alt="Logo" className="logo" style={{ width: '100px', height: 'auto' }} />
         </Link>
       </div>
@@ -302,6 +302,11 @@ function ActividadesPage() {
         />
         <ModalButton onClick={handleSaveEdit}>Guardar Cambios</ModalButton>
       </ReactModal>
+
+      <Footer>
+        <p>© 2024 Fabrizzio Soft Solutions. Todos los derechos reservados.</p>
+      </Footer>
+
     </Container >
   );
 }
