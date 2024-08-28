@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import { saveAs } from 'file-saver';
 import actividades from '../../../src/recursos/actividades.docx';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import { collection, getDocs } from 'firebase/firestore';
+import { firestore } from '../Actividades/firebase'; // Importa tu configuración de Firestore
 
 const Container = styled.div`
   display: flex;
@@ -90,11 +92,56 @@ const BackLink = styled(Link)`
   }
 `;
 
+const ProgressBarContainer = styled.div`
+  width: 80%;
+  max-width: 800px;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 20px;
+`;
+
+const ProgressBar = styled.div`
+  height: 20px;
+  background-color: #28a745;
+  width: ${({ width }) => width}%;
+  transition: width 0.3s ease;
+`;
+
 const App = () => {
   const [bosses, setBosses] = useState([
     { name: 'Ing. Lenin Eduardo Freire Cobo', position: 'Gerente de Tecnologías y Sistemas De Información' },
     { name: 'Ing. José Francisco Rodríguez Rojas', position: 'Director de Desarrollo de Aplicaciones' },
   ]);
+
+  const [documentCount, setDocumentCount] = useState(0);
+  const [totalSize, setTotalSize] = useState(0);
+
+  // Definir el límite de almacenamiento en KB (1 GB = 1,048,576 KB)
+  const storageLimitKB = 1048576;
+
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(firestore, 'datos'));
+        const totalDocs = querySnapshot.size;
+        let estimatedSize = 0;
+
+        // Calcula el tamaño aproximado de cada documento
+        querySnapshot.forEach((doc) => {
+          const docData = JSON.stringify(doc.data());
+          estimatedSize += new Blob([docData]).size; // Estima el tamaño del documento
+        });
+
+        setDocumentCount(totalDocs);
+        setTotalSize(estimatedSize); // Establece el tamaño total estimado
+      } catch (error) {
+        console.error('Error al obtener documentos: ', error);
+      }
+    };
+
+    fetchDocuments();
+  }, []);
 
   const handleInputChange = (index, field, value) => {
     const updatedBosses = bosses.map((boss, i) =>
@@ -133,6 +180,9 @@ const App = () => {
       .catch(error => console.error("Error al cargar la plantilla:", error));
   };
 
+  // Calcular el porcentaje de uso del almacenamiento
+  const usagePercentage = Math.min((totalSize / 1024) / storageLimitKB * 100, 100);
+
   return (
     <Container>
       <Header>Generar Documento de Word desde Plantilla</Header>
@@ -165,6 +215,16 @@ const App = () => {
         </tbody>
       </Table>
       <SubmitButton onClick={generateDocument}>Descargar Documento</SubmitButton>
+
+      <h2>Métricas de Firestore</h2>
+      <p>Total de documentos en Firestore: {documentCount}</p>
+      <p>Tamaño total aproximado: {(totalSize / 1024).toFixed(2)} KB de {storageLimitKB / 1024} MB</p>
+
+      <ProgressBarContainer>
+        <ProgressBar width={usagePercentage} />
+      </ProgressBarContainer>
+      <p>{usagePercentage.toFixed(2)}% del límite de almacenamiento utilizado</p>
+
       <BackLink to="/">Volver al Menú Principal</BackLink>
     </Container>
   );

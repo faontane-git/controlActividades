@@ -75,25 +75,35 @@ function ActividadesPage() {
   const handleActivityChange = (event) => {
     setActivity(event.target.value);
   };
-
   const handleAddActivity = async () => {
     if (!selectedDate) {
       alert('Por favor, selecciona una fecha.');
       return;
     }
-
+  
+    // Crea una nueva actividad sin ID
     const newActivity = { date: selectedDate.toISOString().split('T')[0], activity, completed: false };
-
+  
     try {
+      // Agrega la actividad a Firestore y obtiene la referencia del documento
       const docRef = await addDoc(collection(firestore, 'datos'), newActivity);
+  
+      // Actualiza la actividad en Firestore con el ID generado
+      await updateDoc(docRef, { id: docRef.id });
+  
+      // Crea una nueva actividad con el ID incluido
       const activityWithId = { ...newActivity, id: docRef.id };
+  
+      // Actualiza el estado de actividades
       setActivities([...activities, activityWithId]);
+  
+      // Limpia el campo de actividad
       setActivity('');
     } catch (error) {
       console.error('Error al agregar la actividad: ', error);
     }
   };
-
+  
   const handleDeleteActivity = async (id) => {
     const result = await Swal.fire({
       title: '¿Estás seguro?',
@@ -132,7 +142,7 @@ function ActividadesPage() {
         item.id === itemId ? { ...item, completed: true } : item
       );
       setActivities(updatedActivities);
-      Swal.fire('¡Éxito!', 'Actividad finalizada con éxito, eres un crack.', 'success')
+      Swal.fire('¡Éxito!', 'Actividad finalizada con éxito.', 'success')
         .then(() => {
           window.location.reload(); // Recargar la página después de marcar como completada
         });
@@ -199,9 +209,7 @@ function ActividadesPage() {
   const getMonthName = (monthString) => {
     const [year, month] = monthString.split('-').map(Number);
     const date = new Date(year, month - 1);
-    // Solo obtener el nombre del mes
     const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
-    // Capitalizar la primera letra
     return monthName.charAt(0).toUpperCase() + monthName.slice(1);
   };
 
@@ -217,9 +225,7 @@ function ActividadesPage() {
         const zip = new PizZip(content);
         const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
 
-        // Aquí puedes reemplazar los marcadores de posición en el archivo Word
         const reportData = {
-          // Reemplaza los siguientes valores con los datos que necesitas
           JefeInmediato: bosses[0].name,
           Actividades: filteredActivities.map(activity => ({
             Fecha: new Date(activity.date).toLocaleDateString('es-ES', { timeZone: 'UTC' }),
@@ -248,7 +254,6 @@ function ActividadesPage() {
         console.error('Error al cargar la plantilla:', error);
       });
   };
-
 
   return (
     <Container>
