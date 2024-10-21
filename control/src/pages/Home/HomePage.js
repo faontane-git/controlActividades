@@ -23,12 +23,12 @@ const Container = styled.div`
   background-color: #f5f5f5;
   min-height: 100vh;
   padding: 20px;
-  position: relative; /* Necesario para posicionar el botón en la esquina superior derecha */
+  position: relative;
 `;
 
 const Header = styled.h1`
   color: #333;
-  margin-bottom: 10px; /* Ajusta el margen si es necesario */
+  margin-bottom: 10px;
 `;
 
 const SubHeader = styled.h2`
@@ -60,7 +60,7 @@ const Card = styled.div`
 
 const CardImage = styled.img`
   width: 100%;
-  height: 150px; /* Ajusta el tamaño de la imagen */
+  height: 150px;
   object-fit: cover;
   border-radius: 8px 8px 0 0;
 `;
@@ -71,7 +71,15 @@ const CardContent = styled.div`
 
 const StyledLink = styled(Link)`
   text-decoration: none;
-  color: inherit; /* Hereda el color del Card */
+  color: inherit;
+`;
+
+const ButtonContainer = styled.div`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
 `;
 
 const Button = styled.button`
@@ -83,9 +91,6 @@ const Button = styled.button`
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  position: absolute; /* Posiciona el botón de manera absoluta */
-  top: 20px; /* Ajusta la distancia desde la parte superior */
-  right: 20px; /* Ajusta la distancia desde la derecha */
   
   &:hover {
     background-color: #0056b3;
@@ -128,9 +133,14 @@ const HomePage = () => {
           </StyledLink>
         ))}
       </CardGrid>
-      <Link to="/opciones">
-        <Button>Opciones</Button>
-      </Link>
+      <ButtonContainer>
+        <Link to="/opciones">
+          <Button>Opciones</Button>
+        </Link>
+        <Link to="/facturacion">
+          <Button>Facturación</Button>
+        </Link>
+      </ButtonContainer>
     </Container>
   );
 };
