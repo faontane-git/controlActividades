@@ -8,6 +8,7 @@ import FacturacionPage from './pages/Facturacion';
 import GenerarFactura from './pages/Facturacion/factura';
 import VerHistorico from './pages/Facturacion/historico';
 import CrearProductos from './pages/Facturacion/productos';
+import TrabajoPage from './pages/Trabajo';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path='/factura' element={<GenerarFactura/>}/>
         <Route path='/productos' element={<CrearProductos/>}/>
         <Route path='/historico' element={<VerHistorico/>}/>
+        <Route path='/trabajo' element={<TrabajoPage/>}/>
       </Routes>
     </Router>
   );

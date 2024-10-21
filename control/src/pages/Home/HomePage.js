@@ -137,6 +137,9 @@ const HomePage = () => {
         <Link to="/opciones">
           <Button>Opciones</Button>
         </Link>
+        <Link to="/trabajo">
+          <Button>Trabajo</Button>
+        </Link>
         <Link to="/facturacion">
           <Button>Facturación</Button>
         </Link>
