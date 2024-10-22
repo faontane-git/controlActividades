@@ -10,7 +10,7 @@ const Container = styled.div`
   align-items: center;
   min-height: 100vh;
   background-image: url('https://your-image-url.com/pizarra.jpg'); /* URL de la imagen de pizarra */
-  background-size: cover; /* Ajustar la imagen de fondo al tamaño de la pantalla */
+  background-size: cover;
   background-position: center;
   padding: 20px;
   font-family: 'Roboto', sans-serif;
@@ -67,7 +67,7 @@ const Task = styled.div`
   margin-bottom: 15px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  border-left: 5px solid #007bff;
+  border-left: 5px solid ${(props) => props.color}; /* Color del borde basado en la propiedad */
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
 
@@ -123,32 +123,54 @@ const Button = styled.button`
   }
 `;
 
+const RadioGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const ColorLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9rem;
+`;
+
 const SoftwareBoard = () => {
   const [columns, setColumns] = useState({
     backlog: {
       name: 'Backlog',
-      items: [{ id: uuidv4(), content: 'Implementar autenticación OAuth' }],
+      items: [{ id: uuidv4(), content: 'Implementar autenticación OAuth', color: '#007bff' }],
     },
     inDevelopment: {
       name: 'En Desarrollo',
-      items: [{ id: uuidv4(), content: 'Crear UI para registro de usuarios' }],
+      items: [{ id: uuidv4(), content: 'Crear UI para registro de usuarios', color: '#007bff' }],
     },
     codeReview: {
       name: 'Revisión de Código',
-      items: [{ id: uuidv4(), content: 'Revisar PR #42' }],
+      items: [{ id: uuidv4(), content: 'Revisar PR #42', color: '#007bff' }],
     },
     testing: {
       name: 'Pruebas',
-      items: [{ id: uuidv4(), content: 'Pruebas unitarias para el módulo de pagos' }],
+      items: [{ id: uuidv4(), content: 'Pruebas unitarias para el módulo de pagos', color: '#007bff' }],
     },
     done: {
       name: 'Terminado',
-      items: [{ id: uuidv4(), content: 'Deploy a producción' }],
+      items: [{ id: uuidv4(), content: 'Deploy a producción', color: '#007bff' }],
     },
   });
 
   const [newTask, setNewTask] = useState('');
-  const [selectedTask, setSelectedTask] = useState(null); // Estado para manejar la tarea seleccionada
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [taskColor, setTaskColor] = useState('#007bff'); // Estado para el color de la tarea
+
+  const colors = [
+    { value: '#007bff', label: 'Azul' },
+    { value: '#28a745', label: 'Verde' },
+    { value: '#ffc107', label: 'Amarillo' },
+    { value: '#dc3545', label: 'Rojo' },
+    { value: '#6f42c1', label: 'Morado' },
+  ];
 
   // Función para agregar una nueva tarea
   const addNewTask = (e) => {
@@ -159,7 +181,7 @@ const SoftwareBoard = () => {
       ...prevColumns,
       backlog: {
         ...prevColumns.backlog,
-        items: [...prevColumns.backlog.items, { id: uuidv4(), content: newTask }],
+        items: [...prevColumns.backlog.items, { id: uuidv4(), content: newTask, color: taskColor }],
       },
     }));
     setNewTask('');
@@ -210,6 +232,21 @@ const SoftwareBoard = () => {
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
         />
+        {/* Radio buttons para seleccionar el color */}
+        <RadioGroup>
+          {colors.map((color) => (
+            <ColorLabel key={color.value}>
+              <input
+                type="radio"
+                name="color"
+                value={color.value}
+                checked={taskColor === color.value}
+                onChange={(e) => setTaskColor(e.target.value)}
+              />
+              <span style={{ color: color.value }}>{color.label}</span>
+            </ColorLabel>
+          ))}
+        </RadioGroup>
         <Button type="submit">Agregar Tarea</Button>
       </Form>
 
@@ -229,6 +266,7 @@ const SoftwareBoard = () => {
             {column.items.map((task) => (
               <Task
                 key={task.id}
+                color={task.color}
                 onClick={() => selectTask(task, columnId)}
               >
                 {task.content}
