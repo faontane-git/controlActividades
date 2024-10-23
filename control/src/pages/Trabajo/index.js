@@ -3,13 +3,19 @@ import styled from 'styled-components';
 import { v4 as uuidv4 } from 'uuid';
 import { FaCheckCircle, FaClipboardList, FaCode, FaBug, FaClipboardCheck } from 'react-icons/fa';
 
+// Función para elegir el color de texto según el color de fondo
+const getTextColor = (bgColor) => {
+  const lightColors = ['#ffc107', '#28a745', '#f0f0f0', '#f9f871'];
+  return lightColors.includes(bgColor) ? '#333' : '#fff';
+};
+
 // Contenedor principal del tablero
 const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  background-image: url('https://your-image-url.com/pizarra.jpg'); /* URL de la imagen de pizarra */
+  background-image: url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjUyOXwwfDF8c2VhcmNofDF8fGJsYWNrYm9hcmQlMjBiYWNrZ3JvdW5kfGVufDB8fHx8MTY0MzI2NzYxNQ&ixlib=rb-1.2.1&q=80&w=400'); 
   background-size: cover;
   background-position: center;
   padding: 20px;
@@ -21,7 +27,7 @@ const Board = styled.div`
   display: flex;
   gap: 20px;
   padding: 20px;
-  background-color: rgba(255, 255, 255, 0.9); /* Fondo blanco con un poco de transparencia */
+  background-color: rgba(255, 255, 255, 0.9); 
   border-radius: 12px;
   box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
   width: 90%;
@@ -34,25 +40,27 @@ const Column = styled.div`
   background-color: #f7f9fc;
   border-radius: 12px;
   padding: 20px;
-  width: 300px;
+  width: 280px;
   min-height: 500px;
   box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
+  align-items: center;
 `;
 
-// Encabezado de cada columna
+// Encabezado de cada columna con el mismo ancho que las tareas
 const ColumnHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #007bff;
   color: white;
-  padding: 15px;
+  padding: 10px;
   border-radius: 8px 8px 0 0;
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   text-transform: uppercase;
+  width: 140px;
 `;
 
 // Iconos de encabezado para cada columna
@@ -60,20 +68,30 @@ const HeaderIcon = styled.div`
   margin-right: 10px;
 `;
 
-// Tareas con diseño limpio y moderno
+// Tareas con diseño de notas adhesivas mejoradas y nuevo color de sombra (box-shadow)
 const Task = styled.div`
-  background-color: #fff;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  border-left: 5px solid ${(props) => props.color}; /* Color del borde basado en la propiedad */
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background-color: ${(props) => props.color}; 
+  padding: 12px;
+  margin-bottom: 20px;
+  border-radius: 10px; 
+  box-shadow: 0 4px 15px rgba(0, 0, 139, 0.4); /* Sombra azul oscuro (puedes cambiarlo) */
+  width: 140px;
+  height: 140px;
+  font-family: 'Comic Sans MS', cursive, sans-serif; 
+  font-size: 0.8rem;
+  transform: rotate(${(props) => (props.rotation || 0)}deg); 
+  transition: transform 0.2s ease, box-shadow 0.3s ease, background-color 0.2s ease;
   cursor: pointer;
-
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: ${(props) => getTextColor(props.color)}; 
+  background-image: url('https://www.transparenttextures.com/patterns/corrugation.png');
+  
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-5px) rotate(1deg); 
+    box-shadow: 0 8px 20px rgba(0, 0, 139, 0.5); /* Sombra azul más intensa */
   }
 `;
 
@@ -86,7 +104,7 @@ const MoveButton = styled.button`
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
-  margin-top: 10px;
+  margin-bottom: 10px;
   transition: background-color 0.2s ease;
 
   &:hover {
@@ -162,7 +180,7 @@ const SoftwareBoard = () => {
 
   const [newTask, setNewTask] = useState('');
   const [selectedTask, setSelectedTask] = useState(null);
-  const [taskColor, setTaskColor] = useState('#007bff'); // Estado para el color de la tarea
+  const [taskColor, setTaskColor] = useState('#007bff'); 
 
   const colors = [
     { value: '#007bff', label: 'Azul' },
@@ -198,7 +216,6 @@ const SoftwareBoard = () => {
 
     const { fromColumn } = selectedTask;
 
-    // Remover la tarea de la columna de origen
     const sourceColumn = Array.from(columns[fromColumn].items);
     const destinationColumn = Array.from(columns[destinationColumnId].items);
 
@@ -219,7 +236,7 @@ const SoftwareBoard = () => {
         },
       });
 
-      setSelectedTask(null); // Deseleccionar tarea después de moverla
+      setSelectedTask(null); 
     }
   };
 
@@ -232,7 +249,6 @@ const SoftwareBoard = () => {
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
         />
-        {/* Radio buttons para seleccionar el color */}
         <RadioGroup>
           {colors.map((color) => (
             <ColorLabel key={color.value}>
@@ -253,6 +269,11 @@ const SoftwareBoard = () => {
       <Board>
         {Object.entries(columns).map(([columnId, column]) => (
           <Column key={columnId}>
+            {selectedTask && selectedTask.fromColumn !== columnId && (
+              <MoveButton onClick={() => moveTaskTo(columnId)}>
+                Mover aquí
+              </MoveButton>
+            )}
             <ColumnHeader>
               <HeaderIcon>
                 {columnId === 'backlog' && <FaClipboardList />}
@@ -272,11 +293,6 @@ const SoftwareBoard = () => {
                 {task.content}
               </Task>
             ))}
-            {selectedTask && selectedTask.fromColumn !== columnId && (
-              <MoveButton onClick={() => moveTaskTo(columnId)}>
-                Mover aquí
-              </MoveButton>
-            )}
           </Column>
         ))}
       </Board>
