@@ -53,8 +53,8 @@ const ColumnHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #007bff;
-  color: white;
+  background-color: black; /* Fondo negro */
+  color: white; /* Texto blanco */
   padding: 10px;
   border-radius: 8px 8px 0 0;
   margin: 0;

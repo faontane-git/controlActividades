@@ -9,12 +9,15 @@ import GenerarFactura from './pages/Facturacion/factura';
 import VerHistorico from './pages/Facturacion/historico';
 import CrearProductos from './pages/Facturacion/productos';
 import TrabajoPage from './pages/Trabajo';
+import LandingPage from './pages/LandingPage/LandingPage';
+import LoginPage from './pages/Login/Login';
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path='/login' element={<LoginPage/>}/>
         <Route path="/actividades/:month" element={<ActividadesPage />} />
         <Route path='/opciones' element={<OptionsPage />} />
         <Route path='/facturacion' element={<FacturacionPage/>}/>
