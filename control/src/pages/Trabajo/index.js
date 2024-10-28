@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { v4 as uuidv4 } from 'uuid';
-import { FaClipboardList, FaCode, FaCheckCircle, FaTrash } from 'react-icons/fa';
+import { FaClipboardList, FaCode, FaCheckCircle } from 'react-icons/fa';
 import NavBar from '../NavBar/Navbar';
 
 const getTextColor = (bgColor) => {
@@ -9,6 +9,7 @@ const getTextColor = (bgColor) => {
   return lightColors.includes(bgColor) ? '#333' : '#fff';
 };
 
+// Estilos del contenedor principal y navbar
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -26,6 +27,7 @@ const NavBarContainer = styled.div`
   margin-bottom: 50px;
 `;
 
+// Estilos del tablero y columnas
 const Board = styled.div`
   display: flex;
   gap: 20px;
@@ -51,6 +53,7 @@ const Column = styled.div`
   align-items: center;
 `;
 
+// Encabezado de la columna con icono
 const ColumnHeader = styled.div`
   display: flex;
   align-items: center;
@@ -71,6 +74,7 @@ const HeaderIcon = styled.div`
   margin-right: 10px;
 `;
 
+// Estilos de las tarjetas (tareas)
 const Task = styled.div`
   background-color: ${(props) => props.color};
   padding: 12px;
@@ -87,7 +91,6 @@ const Task = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
   position: relative;
   transition: transform 0.2s ease, box-shadow 0.3s ease;
   &:hover {
@@ -96,21 +99,68 @@ const Task = styled.div`
   }
 `;
 
-const DeleteButton = styled.button`
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  color: #dc3545;
+// Modal de pantalla completa para expandir tarea
+const FullscreenModal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background-color: ${(props) => props.color || 'black'};
+  width: 80%;
+  max-width: 600px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  text-align: center;
   font-size: 1rem;
-  transition: color 0.3s ease;
+  position: relative;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
   &:hover {
-    color: #a61c24;
+    background-color: #a61c24;
   }
 `;
 
+const DeleteButton = styled.button`
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  &:hover {
+    background-color: #a61c24;
+  }
+`;
+
+// Estilos del formulario para añadir tareas
 const Form = styled.form`
   display: flex;
   gap: 10px;
@@ -151,6 +201,7 @@ const ColorLabel = styled.label`
   font-size: 0.9rem;
 `;
 
+// Componente principal
 const SoftwareBoard = () => {
   const [columns, setColumns] = useState({
     backlog: {
@@ -169,6 +220,7 @@ const SoftwareBoard = () => {
 
   const [newTask, setNewTask] = useState('');
   const [taskColor, setTaskColor] = useState('#007bff');
+  const [expandedTask, setExpandedTask] = useState(null); // Estado para el modal de tarea expandida
 
   const colors = [
     { value: '#007bff', label: 'Azul' },
@@ -178,6 +230,7 @@ const SoftwareBoard = () => {
     { value: '#6f42c1', label: 'Morado' },
   ];
 
+  // Agregar nueva tarea
   const addNewTask = (e) => {
     e.preventDefault();
     if (!newTask.trim()) return;
@@ -192,9 +245,9 @@ const SoftwareBoard = () => {
     setNewTask('');
   };
 
+  // Eliminar tarea
   const deleteTask = (taskId, fromColumnId) => {
     const newItems = columns[fromColumnId].items.filter((task) => task.id !== taskId);
-
     setColumns((prevColumns) => ({
       ...prevColumns,
       [fromColumnId]: {
@@ -202,37 +255,17 @@ const SoftwareBoard = () => {
         items: newItems,
       },
     }));
+    setExpandedTask(null); // Cerrar el modal tras eliminar
   };
 
-  const handleDragStart = (e, taskId, fromColumnId) => {
-    e.dataTransfer.setData("taskId", taskId);
-    e.dataTransfer.setData("fromColumnId", fromColumnId);
+  // Abrir modal en pantalla completa con la tarea seleccionada
+  const openTaskInFullscreen = (task) => {
+    setExpandedTask(task);
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e, toColumnId) => {
-    const taskId = e.dataTransfer.getData("taskId");
-    const fromColumnId = e.dataTransfer.getData("fromColumnId");
-
-    if (fromColumnId === toColumnId) return;
-
-    const taskToMove = columns[fromColumnId].items.find((task) => task.id === taskId);
-    const newFromColumnItems = columns[fromColumnId].items.filter((task) => task.id !== taskId);
-
-    setColumns((prevColumns) => ({
-      ...prevColumns,
-      [fromColumnId]: {
-        ...prevColumns[fromColumnId],
-        items: newFromColumnItems,
-      },
-      [toColumnId]: {
-        ...prevColumns[toColumnId],
-        items: [...prevColumns[toColumnId].items, taskToMove],
-      },
-    }));
+  // Cerrar modal
+  const closeModal = () => {
+    setExpandedTask(null);
   };
 
   return (
@@ -240,7 +273,8 @@ const SoftwareBoard = () => {
       <NavBarContainer>
         <NavBar />
       </NavBarContainer>
-      
+
+      {/* Formulario para añadir nuevas tareas */}
       <Form onSubmit={addNewTask}>
         <Input
           type="text"
@@ -265,13 +299,10 @@ const SoftwareBoard = () => {
         <Button type="submit">Agregar Tarea</Button>
       </Form>
 
+      {/* Tablero con columnas */}
       <Board>
         {Object.entries(columns).map(([columnId, column]) => (
-          <Column
-            key={columnId}
-            onDragOver={handleDragOver}
-            onDrop={(e) => handleDrop(e, columnId)}
-          >
+          <Column key={columnId}>
             <ColumnHeader>
               <HeaderIcon>
                 {columnId === 'backlog' && <FaClipboardList />}
@@ -284,18 +315,28 @@ const SoftwareBoard = () => {
               <Task
                 key={task.id}
                 color={task.color}
-                draggable
-                onDragStart={(e) => handleDragStart(e, task.id, columnId)}
+                onClick={() => openTaskInFullscreen(task)}
               >
                 {task.content}
-                <DeleteButton onClick={() => deleteTask(task.id, columnId)}>
-                  <FaTrash />
-                </DeleteButton>
               </Task>
             ))}
           </Column>
         ))}
       </Board>
+
+      {/* Modal de pantalla completa */}
+      {expandedTask && (
+        <FullscreenModal>
+          <ModalContent color={expandedTask.color}>
+            <h2>{expandedTask.content}</h2>
+            <p>Aquí puedes agregar más detalles de la tarea, notas adicionales, o cualquier otra información.</p>
+            <CloseButton onClick={closeModal}>Cerrar</CloseButton>
+            <DeleteButton onClick={() => deleteTask(expandedTask.id, Object.keys(columns).find(key => columns[key].items.includes(expandedTask)))}>
+              Eliminar
+            </DeleteButton>
+          </ModalContent>
+        </FullscreenModal>
+      )}
     </Container>
   );
 };
