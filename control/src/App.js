@@ -11,6 +11,7 @@ import CrearProductos from './pages/Facturacion/productos';
 import TrabajoPage from './pages/Trabajo';
 import LandingPage from './pages/LandingPage/LandingPage';
 import LoginPage from './pages/Login/Login';
+import MainPage from './pages/Main/main';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path='/login' element={<LoginPage/>}/>
+        <Route path='/main' element={<MainPage/>}/>
         <Route path="/actividades/:month" element={<ActividadesPage />} />
         <Route path='/opciones' element={<OptionsPage />} />
         <Route path='/facturacion' element={<FacturacionPage/>}/>

@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { v4 as uuidv4 } from 'uuid';
-import { FaCheckCircle, FaClipboardList, FaCode, FaBug, FaClipboardCheck } from 'react-icons/fa';
+import { FaClipboardList, FaCode, FaCheckCircle, FaTrash } from 'react-icons/fa';
+import NavBar from '../NavBar/Navbar';
 
-// Función para elegir el color de texto según el color de fondo
 const getTextColor = (bgColor) => {
   const lightColors = ['#ffc107', '#28a745', '#f0f0f0', '#f9f871'];
   return lightColors.includes(bgColor) ? '#333' : '#fff';
 };
 
-// Contenedor principal del tablero
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -22,20 +21,24 @@ const Container = styled.div`
   font-family: 'Roboto', sans-serif;
 `;
 
-// Tablero con las columnas
+const NavBarContainer = styled.div`
+  width: 100%;
+  margin-bottom: 50px;
+`;
+
 const Board = styled.div`
   display: flex;
   gap: 20px;
   padding: 20px;
-  background-color: rgba(255, 255, 255, 0.9); 
+  background-color: rgba(255, 255, 255, 0.9);
   border-radius: 12px;
   box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
   width: 90%;
   max-width: 1400px;
   margin: 0 auto;
+  position: relative;
 `;
 
-// Columnas del tablero
 const Column = styled.div`
   background-color: #f7f9fc;
   border-radius: 12px;
@@ -48,71 +51,66 @@ const Column = styled.div`
   align-items: center;
 `;
 
-// Encabezado de cada columna con el mismo ancho que las tareas
 const ColumnHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: black; /* Fondo negro */
-  color: white; /* Texto blanco */
+  background-color: black;
+  color: white;
   padding: 10px;
   border-radius: 8px 8px 0 0;
-  margin: 0;
   font-size: 1.1rem;
   text-transform: uppercase;
-  width: 140px;
+  width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
-// Iconos de encabezado para cada columna
 const HeaderIcon = styled.div`
   margin-right: 10px;
 `;
 
-// Tareas con diseño de notas adhesivas mejoradas y nuevo color de sombra (box-shadow)
 const Task = styled.div`
-  background-color: ${(props) => props.color}; 
+  background-color: ${(props) => props.color};
   padding: 12px;
   margin-bottom: 20px;
-  border-radius: 10px; 
-  box-shadow: 0 4px 15px rgba(0, 0, 139, 0.4); /* Sombra azul oscuro (puedes cambiarlo) */
-  width: 140px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 139, 0.4);
+  width: 180px;
   height: 140px;
-  font-family: 'Comic Sans MS', cursive, sans-serif; 
+  font-family: 'Comic Sans MS', cursive, sans-serif;
   font-size: 0.8rem;
-  transform: rotate(${(props) => (props.rotation || 0)}deg); 
-  transition: transform 0.2s ease, box-shadow 0.3s ease, background-color 0.2s ease;
+  text-align: center;
+  color: ${(props) => getTextColor(props.color)};
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  color: ${(props) => getTextColor(props.color)}; 
-  background-image: url('https://www.transparenttextures.com/patterns/corrugation.png');
-  
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
   &:hover {
-    transform: translateY(-5px) rotate(1deg); 
-    box-shadow: 0 8px 20px rgba(0, 0, 139, 0.5); /* Sombra azul más intensa */
+    transform: translateY(-5px) rotate(1deg);
+    box-shadow: 0 8px 20px rgba(0, 0, 139, 0.5);
   }
 `;
 
-// Botones para mover tareas
-const MoveButton = styled.button`
-  padding: 8px 12px;
-  background-color: #28a745;
-  color: white;
+const DeleteButton = styled.button`
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: transparent;
   border: none;
-  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
-  margin-bottom: 10px;
-  transition: background-color 0.2s ease;
-
+  color: #dc3545;
+  font-size: 1rem;
+  transition: color 0.3s ease;
   &:hover {
-    background-color: #218838;
+    color: #a61c24;
   }
 `;
 
-// Estilos para el formulario de nueva tarea
 const Form = styled.form`
   display: flex;
   gap: 10px;
@@ -135,7 +133,6 @@ const Button = styled.button`
   border-radius: 6px;
   font-size: 1rem;
   cursor: pointer;
-
   &:hover {
     background-color: #0056b3;
   }
@@ -164,14 +161,6 @@ const SoftwareBoard = () => {
       name: 'En Desarrollo',
       items: [{ id: uuidv4(), content: 'Crear UI para registro de usuarios', color: '#007bff' }],
     },
-    codeReview: {
-      name: 'Revisión de Código',
-      items: [{ id: uuidv4(), content: 'Revisar PR #42', color: '#007bff' }],
-    },
-    testing: {
-      name: 'Pruebas',
-      items: [{ id: uuidv4(), content: 'Pruebas unitarias para el módulo de pagos', color: '#007bff' }],
-    },
     done: {
       name: 'Terminado',
       items: [{ id: uuidv4(), content: 'Deploy a producción', color: '#007bff' }],
@@ -179,8 +168,7 @@ const SoftwareBoard = () => {
   });
 
   const [newTask, setNewTask] = useState('');
-  const [selectedTask, setSelectedTask] = useState(null);
-  const [taskColor, setTaskColor] = useState('#007bff'); 
+  const [taskColor, setTaskColor] = useState('#007bff');
 
   const colors = [
     { value: '#007bff', label: 'Azul' },
@@ -190,7 +178,6 @@ const SoftwareBoard = () => {
     { value: '#6f42c1', label: 'Morado' },
   ];
 
-  // Función para agregar una nueva tarea
   const addNewTask = (e) => {
     e.preventDefault();
     if (!newTask.trim()) return;
@@ -205,43 +192,55 @@ const SoftwareBoard = () => {
     setNewTask('');
   };
 
-  // Función para seleccionar una tarea
-  const selectTask = (task, columnId) => {
-    setSelectedTask({ ...task, fromColumn: columnId });
+  const deleteTask = (taskId, fromColumnId) => {
+    const newItems = columns[fromColumnId].items.filter((task) => task.id !== taskId);
+
+    setColumns((prevColumns) => ({
+      ...prevColumns,
+      [fromColumnId]: {
+        ...prevColumns[fromColumnId],
+        items: newItems,
+      },
+    }));
   };
 
-  // Función para mover la tarea seleccionada a la columna de destino
-  const moveTaskTo = (destinationColumnId) => {
-    if (!selectedTask) return;
+  const handleDragStart = (e, taskId, fromColumnId) => {
+    e.dataTransfer.setData("taskId", taskId);
+    e.dataTransfer.setData("fromColumnId", fromColumnId);
+  };
 
-    const { fromColumn } = selectedTask;
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
 
-    const sourceColumn = Array.from(columns[fromColumn].items);
-    const destinationColumn = Array.from(columns[destinationColumnId].items);
+  const handleDrop = (e, toColumnId) => {
+    const taskId = e.dataTransfer.getData("taskId");
+    const fromColumnId = e.dataTransfer.getData("fromColumnId");
 
-    const taskToMove = sourceColumn.find((task) => task.id === selectedTask.id);
-    if (taskToMove) {
-      sourceColumn.splice(sourceColumn.indexOf(taskToMove), 1);
-      destinationColumn.push(taskToMove);
+    if (fromColumnId === toColumnId) return;
 
-      setColumns({
-        ...columns,
-        [fromColumn]: {
-          ...columns[fromColumn],
-          items: sourceColumn,
-        },
-        [destinationColumnId]: {
-          ...columns[destinationColumnId],
-          items: destinationColumn,
-        },
-      });
+    const taskToMove = columns[fromColumnId].items.find((task) => task.id === taskId);
+    const newFromColumnItems = columns[fromColumnId].items.filter((task) => task.id !== taskId);
 
-      setSelectedTask(null); 
-    }
+    setColumns((prevColumns) => ({
+      ...prevColumns,
+      [fromColumnId]: {
+        ...prevColumns[fromColumnId],
+        items: newFromColumnItems,
+      },
+      [toColumnId]: {
+        ...prevColumns[toColumnId],
+        items: [...prevColumns[toColumnId].items, taskToMove],
+      },
+    }));
   };
 
   return (
     <Container>
+      <NavBarContainer>
+        <NavBar />
+      </NavBarContainer>
+      
       <Form onSubmit={addNewTask}>
         <Input
           type="text"
@@ -268,18 +267,15 @@ const SoftwareBoard = () => {
 
       <Board>
         {Object.entries(columns).map(([columnId, column]) => (
-          <Column key={columnId}>
-            {selectedTask && selectedTask.fromColumn !== columnId && (
-              <MoveButton onClick={() => moveTaskTo(columnId)}>
-                Mover aquí
-              </MoveButton>
-            )}
+          <Column
+            key={columnId}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, columnId)}
+          >
             <ColumnHeader>
               <HeaderIcon>
                 {columnId === 'backlog' && <FaClipboardList />}
                 {columnId === 'inDevelopment' && <FaCode />}
-                {columnId === 'codeReview' && <FaBug />}
-                {columnId === 'testing' && <FaClipboardCheck />}
                 {columnId === 'done' && <FaCheckCircle />}
               </HeaderIcon>
               {column.name}
@@ -288,9 +284,13 @@ const SoftwareBoard = () => {
               <Task
                 key={task.id}
                 color={task.color}
-                onClick={() => selectTask(task, columnId)}
+                draggable
+                onDragStart={(e) => handleDragStart(e, task.id, columnId)}
               >
                 {task.content}
+                <DeleteButton onClick={() => deleteTask(task.id, columnId)}>
+                  <FaTrash />
+                </DeleteButton>
               </Task>
             ))}
           </Column>

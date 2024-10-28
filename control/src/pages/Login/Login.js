@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleLogin = () => {
-    alert(`Iniciando sesión con: ${username}`);
-    // Aquí agregarías la lógica de autenticación.
+    if (username === 'admin' && password === 'admin') {
+      navigate('/main'); // Redirige a la página principal
+    } else {
+      alert("Credenciales incorrectas");
+    }
   };
 
   return (
