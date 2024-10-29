@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { v4 as uuidv4 } from 'uuid';
 import { FaClipboardList, FaCode, FaCheckCircle } from 'react-icons/fa';
 import NavBar from '../NavBar/Navbar';
@@ -8,6 +8,18 @@ const getTextColor = (bgColor) => {
   const lightColors = ['#ffc107', '#28a745', '#f0f0f0', '#f9f871'];
   return lightColors.includes(bgColor) ? '#333' : '#fff';
 };
+
+// Animación para el modal
+const fadeInScale = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
 
 // Estilos del contenedor principal y navbar
 const Container = styled.div`
@@ -116,14 +128,15 @@ const FullscreenModal = styled.div`
 
 const ModalContent = styled.div`
   background-color: ${(props) => props.color || 'black'};
-  width: 80%;
-  max-width: 600px;
-  padding: 20px;
-  border-radius: 8px;
+  width: 90%;
+  max-width: 800px;
+  padding: 40px;
+  border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   text-align: center;
   font-size: 1rem;
   position: relative;
+  animation: ${fadeInScale} 0.4s ease;
 `;
 
 const CloseButton = styled.button`
@@ -188,39 +201,44 @@ const Button = styled.button`
   }
 `;
 
-const RadioGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
+const EditableInput = styled.input`
+  width: 100%;
+  padding: 10px;
+  margin-top: 20px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
 `;
 
-const ColorLabel = styled.label`
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.9rem;
+const EditableTextarea = styled.textarea`
+  width: 100%;
+  padding: 10px;
+  margin-top: 20px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+  min-height: 100px;
 `;
 
-// Componente principal
 const SoftwareBoard = () => {
   const [columns, setColumns] = useState({
     backlog: {
       name: 'Backlog',
-      items: [{ id: uuidv4(), content: 'Implementar autenticación OAuth', color: '#007bff' }],
+      items: [{ id: uuidv4(), content: 'Implementar autenticación OAuth', color: '#007bff', description: '' }],
     },
     inDevelopment: {
       name: 'En Desarrollo',
-      items: [{ id: uuidv4(), content: 'Crear UI para registro de usuarios', color: '#007bff' }],
+      items: [{ id: uuidv4(), content: 'Crear UI para registro de usuarios', color: '#007bff', description: '' }],
     },
     done: {
       name: 'Terminado',
-      items: [{ id: uuidv4(), content: 'Deploy a producción', color: '#007bff' }],
+      items: [{ id: uuidv4(), content: 'Deploy a producción', color: '#007bff', description: '' }],
     },
   });
 
   const [newTask, setNewTask] = useState('');
   const [taskColor, setTaskColor] = useState('#007bff');
-  const [expandedTask, setExpandedTask] = useState(null); // Estado para el modal de tarea expandida
+  const [expandedTask, setExpandedTask] = useState(null);
 
   const colors = [
     { value: '#007bff', label: 'Azul' },
@@ -239,7 +257,7 @@ const SoftwareBoard = () => {
       ...prevColumns,
       backlog: {
         ...prevColumns.backlog,
-        items: [...prevColumns.backlog.items, { id: uuidv4(), content: newTask, color: taskColor }],
+        items: [...prevColumns.backlog.items, { id: uuidv4(), content: newTask, color: taskColor, description: '' }],
       },
     }));
     setNewTask('');
@@ -255,7 +273,7 @@ const SoftwareBoard = () => {
         items: newItems,
       },
     }));
-    setExpandedTask(null); // Cerrar el modal tras eliminar
+    setExpandedTask(null);
   };
 
   // Abrir modal en pantalla completa con la tarea seleccionada
@@ -268,13 +286,35 @@ const SoftwareBoard = () => {
     setExpandedTask(null);
   };
 
+  // Editar contenido de la tarjeta
+  const handleTaskChange = (field, value) => {
+    setExpandedTask((prevTask) => ({
+      ...prevTask,
+      [field]: value,
+    }));
+  };
+
+  // Guardar cambios en la tarjeta
+  const saveTaskChanges = () => {
+    const updatedItems = columns[expandedTask.fromColumn].items.map((item) =>
+      item.id === expandedTask.id ? { ...item, content: expandedTask.content, description: expandedTask.description } : item
+    );
+    setColumns((prevColumns) => ({
+      ...prevColumns,
+      [expandedTask.fromColumn]: {
+        ...prevColumns[expandedTask.fromColumn],
+        items: updatedItems,
+      },
+    }));
+    closeModal();
+  };
+
   return (
     <Container>
       <NavBarContainer>
         <NavBar />
       </NavBarContainer>
 
-      {/* Formulario para añadir nuevas tareas */}
       <Form onSubmit={addNewTask}>
         <Input
           type="text"
@@ -282,24 +322,9 @@ const SoftwareBoard = () => {
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
         />
-        <RadioGroup>
-          {colors.map((color) => (
-            <ColorLabel key={color.value}>
-              <input
-                type="radio"
-                name="color"
-                value={color.value}
-                checked={taskColor === color.value}
-                onChange={(e) => setTaskColor(e.target.value)}
-              />
-              <span style={{ color: color.value }}>{color.label}</span>
-            </ColorLabel>
-          ))}
-        </RadioGroup>
         <Button type="submit">Agregar Tarea</Button>
       </Form>
 
-      {/* Tablero con columnas */}
       <Board>
         {Object.entries(columns).map(([columnId, column]) => (
           <Column key={columnId}>
@@ -315,7 +340,7 @@ const SoftwareBoard = () => {
               <Task
                 key={task.id}
                 color={task.color}
-                onClick={() => openTaskInFullscreen(task)}
+                onClick={() => openTaskInFullscreen({ ...task, fromColumn: columnId })}
               >
                 {task.content}
               </Task>
@@ -324,14 +349,23 @@ const SoftwareBoard = () => {
         ))}
       </Board>
 
-      {/* Modal de pantalla completa */}
       {expandedTask && (
         <FullscreenModal>
           <ModalContent color={expandedTask.color}>
-            <h2>{expandedTask.content}</h2>
-            <p>Aquí puedes agregar más detalles de la tarea, notas adicionales, o cualquier otra información.</p>
+            <EditableInput
+              type="text"
+              value={expandedTask.content}
+              onChange={(e) => handleTaskChange('content', e.target.value)}
+              placeholder="Título de la tarea"
+            />
+            <EditableTextarea
+              value={expandedTask.description}
+              onChange={(e) => handleTaskChange('description', e.target.value)}
+              placeholder="Descripción de la tarea"
+            />
+            <Button onClick={saveTaskChanges}>Guardar Cambios</Button>
             <CloseButton onClick={closeModal}>Cerrar</CloseButton>
-            <DeleteButton onClick={() => deleteTask(expandedTask.id, Object.keys(columns).find(key => columns[key].items.includes(expandedTask)))}>
+            <DeleteButton onClick={() => deleteTask(expandedTask.id, expandedTask.fromColumn)}>
               Eliminar
             </DeleteButton>
           </ModalContent>
