@@ -1,15 +1,27 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { v4 as uuidv4 } from 'uuid';
-import { FaCheckCircle, FaClipboardList, FaCode, FaBug, FaClipboardCheck } from 'react-icons/fa';
+import { FaClipboardList, FaCode, FaCheckCircle } from 'react-icons/fa';
+import NavBar from '../NavBar/Navbar';
 
-// Función para elegir el color de texto según el color de fondo
 const getTextColor = (bgColor) => {
   const lightColors = ['#ffc107', '#28a745', '#f0f0f0', '#f9f871'];
   return lightColors.includes(bgColor) ? '#333' : '#fff';
 };
 
-// Contenedor principal del tablero
+// Animación para el modal
+const fadeInScale = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
+// Estilos del contenedor principal y navbar
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -22,20 +34,25 @@ const Container = styled.div`
   font-family: 'Roboto', sans-serif;
 `;
 
-// Tablero con las columnas
+const NavBarContainer = styled.div`
+  width: 100%;
+  margin-bottom: 50px;
+`;
+
+// Estilos del tablero y columnas
 const Board = styled.div`
   display: flex;
   gap: 20px;
   padding: 20px;
-  background-color: rgba(255, 255, 255, 0.9); 
+  background-color: rgba(255, 255, 255, 0.9);
   border-radius: 12px;
   box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
   width: 90%;
   max-width: 1400px;
   margin: 0 auto;
+  position: relative;
 `;
 
-// Columnas del tablero
 const Column = styled.div`
   background-color: #f7f9fc;
   border-radius: 12px;
@@ -48,71 +65,115 @@ const Column = styled.div`
   align-items: center;
 `;
 
-// Encabezado de cada columna con el mismo ancho que las tareas
+// Encabezado de la columna con icono
 const ColumnHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: black; /* Fondo negro */
-  color: white; /* Texto blanco */
+  background-color: black;
+  color: white;
   padding: 10px;
   border-radius: 8px 8px 0 0;
-  margin: 0;
   font-size: 1.1rem;
   text-transform: uppercase;
-  width: 140px;
+  width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
-// Iconos de encabezado para cada columna
 const HeaderIcon = styled.div`
   margin-right: 10px;
 `;
 
-// Tareas con diseño de notas adhesivas mejoradas y nuevo color de sombra (box-shadow)
+// Estilos de las tarjetas (tareas)
 const Task = styled.div`
-  background-color: ${(props) => props.color}; 
+  background-color: ${(props) => props.color};
   padding: 12px;
   margin-bottom: 20px;
-  border-radius: 10px; 
-  box-shadow: 0 4px 15px rgba(0, 0, 139, 0.4); /* Sombra azul oscuro (puedes cambiarlo) */
-  width: 140px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 139, 0.4);
+  width: 180px;
   height: 140px;
-  font-family: 'Comic Sans MS', cursive, sans-serif; 
+  font-family: 'Comic Sans MS', cursive, sans-serif;
   font-size: 0.8rem;
-  transform: rotate(${(props) => (props.rotation || 0)}deg); 
-  transition: transform 0.2s ease, box-shadow 0.3s ease, background-color 0.2s ease;
+  text-align: center;
+  color: ${(props) => getTextColor(props.color)};
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  color: ${(props) => getTextColor(props.color)}; 
-  background-image: url('https://www.transparenttextures.com/patterns/corrugation.png');
-  
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
   &:hover {
-    transform: translateY(-5px) rotate(1deg); 
-    box-shadow: 0 8px 20px rgba(0, 0, 139, 0.5); /* Sombra azul más intensa */
+    transform: translateY(-5px) rotate(1deg);
+    box-shadow: 0 8px 20px rgba(0, 0, 139, 0.5);
   }
 `;
 
-// Botones para mover tareas
-const MoveButton = styled.button`
-  padding: 8px 12px;
-  background-color: #28a745;
+// Modal de pantalla completa para expandir tarea
+const FullscreenModal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background-color: ${(props) => props.color || 'black'};
+  width: 90%;
+  max-width: 800px;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  font-size: 1rem;
+  position: relative;
+  animation: ${fadeInScale} 0.4s ease;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: #dc3545;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 1rem;
   cursor: pointer;
-  font-size: 0.9rem;
-  margin-bottom: 10px;
-  transition: background-color 0.2s ease;
-
+  transition: background-color 0.3s ease;
   &:hover {
-    background-color: #218838;
+    background-color: #a61c24;
   }
 `;
 
-// Estilos para el formulario de nueva tarea
+const DeleteButton = styled.button`
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  &:hover {
+    background-color: #a61c24;
+  }
+`;
+
+// Estilos del formulario para añadir tareas
 const Form = styled.form`
   display: flex;
   gap: 10px;
@@ -135,52 +196,49 @@ const Button = styled.button`
   border-radius: 6px;
   font-size: 1rem;
   cursor: pointer;
-
   &:hover {
     background-color: #0056b3;
   }
 `;
 
-const RadioGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
+const EditableInput = styled.input`
+  width: 100%;
+  padding: 10px;
+  margin-top: 20px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
 `;
 
-const ColorLabel = styled.label`
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.9rem;
+const EditableTextarea = styled.textarea`
+  width: 100%;
+  padding: 10px;
+  margin-top: 20px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+  min-height: 100px;
 `;
 
 const SoftwareBoard = () => {
   const [columns, setColumns] = useState({
     backlog: {
       name: 'Backlog',
-      items: [{ id: uuidv4(), content: 'Implementar autenticación OAuth', color: '#007bff' }],
+      items: [{ id: uuidv4(), content: 'Implementar autenticación OAuth', color: '#007bff', description: '' }],
     },
     inDevelopment: {
       name: 'En Desarrollo',
-      items: [{ id: uuidv4(), content: 'Crear UI para registro de usuarios', color: '#007bff' }],
-    },
-    codeReview: {
-      name: 'Revisión de Código',
-      items: [{ id: uuidv4(), content: 'Revisar PR #42', color: '#007bff' }],
-    },
-    testing: {
-      name: 'Pruebas',
-      items: [{ id: uuidv4(), content: 'Pruebas unitarias para el módulo de pagos', color: '#007bff' }],
+      items: [{ id: uuidv4(), content: 'Crear UI para registro de usuarios', color: '#007bff', description: '' }],
     },
     done: {
       name: 'Terminado',
-      items: [{ id: uuidv4(), content: 'Deploy a producción', color: '#007bff' }],
+      items: [{ id: uuidv4(), content: 'Deploy a producción', color: '#007bff', description: '' }],
     },
   });
 
   const [newTask, setNewTask] = useState('');
-  const [selectedTask, setSelectedTask] = useState(null);
-  const [taskColor, setTaskColor] = useState('#007bff'); 
+  const [taskColor, setTaskColor] = useState('#007bff');
+  const [expandedTask, setExpandedTask] = useState(null);
 
   const colors = [
     { value: '#007bff', label: 'Azul' },
@@ -190,7 +248,7 @@ const SoftwareBoard = () => {
     { value: '#6f42c1', label: 'Morado' },
   ];
 
-  // Función para agregar una nueva tarea
+  // Agregar nueva tarea
   const addNewTask = (e) => {
     e.preventDefault();
     if (!newTask.trim()) return;
@@ -199,49 +257,64 @@ const SoftwareBoard = () => {
       ...prevColumns,
       backlog: {
         ...prevColumns.backlog,
-        items: [...prevColumns.backlog.items, { id: uuidv4(), content: newTask, color: taskColor }],
+        items: [...prevColumns.backlog.items, { id: uuidv4(), content: newTask, color: taskColor, description: '' }],
       },
     }));
     setNewTask('');
   };
 
-  // Función para seleccionar una tarea
-  const selectTask = (task, columnId) => {
-    setSelectedTask({ ...task, fromColumn: columnId });
+  // Eliminar tarea
+  const deleteTask = (taskId, fromColumnId) => {
+    const newItems = columns[fromColumnId].items.filter((task) => task.id !== taskId);
+    setColumns((prevColumns) => ({
+      ...prevColumns,
+      [fromColumnId]: {
+        ...prevColumns[fromColumnId],
+        items: newItems,
+      },
+    }));
+    setExpandedTask(null);
   };
 
-  // Función para mover la tarea seleccionada a la columna de destino
-  const moveTaskTo = (destinationColumnId) => {
-    if (!selectedTask) return;
+  // Abrir modal en pantalla completa con la tarea seleccionada
+  const openTaskInFullscreen = (task) => {
+    setExpandedTask(task);
+  };
 
-    const { fromColumn } = selectedTask;
+  // Cerrar modal
+  const closeModal = () => {
+    setExpandedTask(null);
+  };
 
-    const sourceColumn = Array.from(columns[fromColumn].items);
-    const destinationColumn = Array.from(columns[destinationColumnId].items);
+  // Editar contenido de la tarjeta
+  const handleTaskChange = (field, value) => {
+    setExpandedTask((prevTask) => ({
+      ...prevTask,
+      [field]: value,
+    }));
+  };
 
-    const taskToMove = sourceColumn.find((task) => task.id === selectedTask.id);
-    if (taskToMove) {
-      sourceColumn.splice(sourceColumn.indexOf(taskToMove), 1);
-      destinationColumn.push(taskToMove);
-
-      setColumns({
-        ...columns,
-        [fromColumn]: {
-          ...columns[fromColumn],
-          items: sourceColumn,
-        },
-        [destinationColumnId]: {
-          ...columns[destinationColumnId],
-          items: destinationColumn,
-        },
-      });
-
-      setSelectedTask(null); 
-    }
+  // Guardar cambios en la tarjeta
+  const saveTaskChanges = () => {
+    const updatedItems = columns[expandedTask.fromColumn].items.map((item) =>
+      item.id === expandedTask.id ? { ...item, content: expandedTask.content, description: expandedTask.description } : item
+    );
+    setColumns((prevColumns) => ({
+      ...prevColumns,
+      [expandedTask.fromColumn]: {
+        ...prevColumns[expandedTask.fromColumn],
+        items: updatedItems,
+      },
+    }));
+    closeModal();
   };
 
   return (
     <Container>
+      <NavBarContainer>
+        <NavBar />
+      </NavBarContainer>
+
       <Form onSubmit={addNewTask}>
         <Input
           type="text"
@@ -249,37 +322,16 @@ const SoftwareBoard = () => {
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
         />
-        <RadioGroup>
-          {colors.map((color) => (
-            <ColorLabel key={color.value}>
-              <input
-                type="radio"
-                name="color"
-                value={color.value}
-                checked={taskColor === color.value}
-                onChange={(e) => setTaskColor(e.target.value)}
-              />
-              <span style={{ color: color.value }}>{color.label}</span>
-            </ColorLabel>
-          ))}
-        </RadioGroup>
         <Button type="submit">Agregar Tarea</Button>
       </Form>
 
       <Board>
         {Object.entries(columns).map(([columnId, column]) => (
           <Column key={columnId}>
-            {selectedTask && selectedTask.fromColumn !== columnId && (
-              <MoveButton onClick={() => moveTaskTo(columnId)}>
-                Mover aquí
-              </MoveButton>
-            )}
             <ColumnHeader>
               <HeaderIcon>
                 {columnId === 'backlog' && <FaClipboardList />}
                 {columnId === 'inDevelopment' && <FaCode />}
-                {columnId === 'codeReview' && <FaBug />}
-                {columnId === 'testing' && <FaClipboardCheck />}
                 {columnId === 'done' && <FaCheckCircle />}
               </HeaderIcon>
               {column.name}
@@ -288,7 +340,7 @@ const SoftwareBoard = () => {
               <Task
                 key={task.id}
                 color={task.color}
-                onClick={() => selectTask(task, columnId)}
+                onClick={() => openTaskInFullscreen({ ...task, fromColumn: columnId })}
               >
                 {task.content}
               </Task>
@@ -296,6 +348,29 @@ const SoftwareBoard = () => {
           </Column>
         ))}
       </Board>
+
+      {expandedTask && (
+        <FullscreenModal>
+          <ModalContent color={expandedTask.color}>
+            <EditableInput
+              type="text"
+              value={expandedTask.content}
+              onChange={(e) => handleTaskChange('content', e.target.value)}
+              placeholder="Título de la tarea"
+            />
+            <EditableTextarea
+              value={expandedTask.description}
+              onChange={(e) => handleTaskChange('description', e.target.value)}
+              placeholder="Descripción de la tarea"
+            />
+            <Button onClick={saveTaskChanges}>Guardar Cambios</Button>
+            <CloseButton onClick={closeModal}>Cerrar</CloseButton>
+            <DeleteButton onClick={() => deleteTask(expandedTask.id, expandedTask.fromColumn)}>
+              Eliminar
+            </DeleteButton>
+          </ModalContent>
+        </FullscreenModal>
+      )}
     </Container>
   );
 };

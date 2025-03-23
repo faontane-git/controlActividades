@@ -19,54 +19,61 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
+  font-family: 'Roboto', sans-serif;
+  background-color: #eaeaea;
   min-height: 100vh;
   padding: 20px;
   position: relative;
 `;
 
 const Header = styled.h1`
-  color: #333;
+  color: #222;
   margin-bottom: 10px;
+  font-size: 2.5rem;
+  font-weight: bold;
 `;
 
 const SubHeader = styled.h2`
-  color: #666;
-  margin-bottom: 20px;
+  color: #555;
+  margin-bottom: 30px;
+  font-size: 1.8rem;
 `;
 
 const CardGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
   width: 100%;
-  max-width: 1000px;
+  max-width: 1200px;
 `;
 
 const Card = styled.div`
-  background-color: #007bff;
-  color: white;
+  background-color: #f7f9fc;
+  color: #000;
   padding: 0;
-  border-radius: 8px;
+  border-radius: 12px;
   text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 
   &:hover {
-    background-color: #0056b3;
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
   }
 `;
 
 const CardImage = styled.img`
   width: 100%;
-  height: 150px;
+  height: 180px;
   object-fit: cover;
-  border-radius: 8px 8px 0 0;
+  border-radius: 12px 12px 0 0;
 `;
 
 const CardContent = styled.div`
-  padding: 10px;
+  padding: 15px;
+  font-size: 1.2rem;
+  font-weight: bold;
 `;
 
 const StyledLink = styled(Link)`
@@ -79,7 +86,7 @@ const ButtonContainer = styled.div`
   top: 20px;
   right: 20px;
   display: flex;
-  gap: 10px;
+  gap: 15px;
 `;
 
 const Button = styled.button`
@@ -87,13 +94,15 @@ const Button = styled.button`
   color: white;
   border: none;
   border-radius: 8px;
-  padding: 10px 20px;
+  padding: 12px 24px;
   font-size: 16px;
+  font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  
+  transition: background-color 0.3s ease, transform 0.2s ease;
+
   &:hover {
     background-color: #0056b3;
+    transform: translateY(-2px);
   }
 `;
 
@@ -116,19 +125,16 @@ const HomePage = () => {
   return (
     <Container>
       <div className="logo-container">
-        <img src={logo} alt="Logo" className="logo" style={{ width: '100px', height: 'auto' }} />
+        <img src={logo} alt="Logo" className="logo" style={{ width: '120px', height: 'auto' }} />
       </div>
       <Header>Sistema de control de actividades</Header>
-      <Header>Bienvenido</Header>
       <SubHeader>Seleccione un mes</SubHeader>
       <CardGrid>
         {months.map((month) => (
           <StyledLink key={month.value} to={`/actividades/${month.value}`}>
             <Card>
               <CardImage src={month.image} alt={month.name} />
-              <CardContent>
-                {month.name}
-              </CardContent>
+              <CardContent>{month.name}</CardContent>
             </Card>
           </StyledLink>
         ))}
