@@ -1,78 +1,4 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
-  min-height: 100vh;
-  padding: 20px;
-`;
-
-const Header = styled.h1`
-  color: #333;
-  margin-bottom: 20px;
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  width: 300px;
-  margin-bottom: 20px;
-`;
-
-const Label = styled.label`
-  margin-bottom: 5px;
-  color: #666;
-`;
-
-const Input = styled.input`
-  padding: 10px;
-  margin-bottom: 20px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-`;
-
-const Button = styled.button`
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-
-  &:hover {
-    background-color: #0056b3;
-  }
-`;
-
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-`;
-
-const TableHeader = styled.th`
-  border: 1px solid #ddd;
-  padding: 8px;
-  background-color: #007bff;
-  color: white;
-`;
-
-const TableRow = styled.tr`
-  &:nth-child(even) {
-    background-color: #f2f2f2;
-  }
-`;
-
-const TableCell = styled.td`
-  border: 1px solid #ddd;
-  padding: 8px;
-`;
 
 const CrearProductos = () => {
   const [productos, setProductos] = useState([]);
@@ -92,63 +18,90 @@ const CrearProductos = () => {
   };
 
   return (
-    <Container>
-      <Header>Crear Producto</Header>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center p-6 font-sans">
+      {/* Header */}
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">Crear Producto</h1>
 
-      <Form>
-        <Label>Código del Producto</Label>
-        <Input
-          type="text"
-          name="codigo"
-          value={productoActual.codigo}
-          onChange={handleProductoChange}
-          required
-        />
+      {/* Formulario */}
+      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl">
+        <div className="grid grid-cols-1 gap-6">
+          {/* Código del Producto */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Código del Producto</label>
+            <input
+              type="text"
+              name="codigo"
+              value={productoActual.codigo}
+              onChange={handleProductoChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
 
-        <Label>Descripción del Producto</Label>
-        <Input
-          type="text"
-          name="descripcion"
-          value={productoActual.descripcion}
-          onChange={handleProductoChange}
-          required
-        />
+          {/* Descripción del Producto */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Descripción del Producto</label>
+            <input
+              type="text"
+              name="descripcion"
+              value={productoActual.descripcion}
+              onChange={handleProductoChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
 
-        <Label>Precio Unitario</Label>
-        <Input
-          type="number"
-          name="precio"
-          value={productoActual.precio}
-          onChange={handleProductoChange}
-          required
-        />
+          {/* Precio Unitario */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Precio Unitario</label>
+            <input
+              type="number"
+              name="precio"
+              value={productoActual.precio}
+              onChange={handleProductoChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
 
-        <Button type="button" onClick={agregarProducto}>
-          Agregar Producto
-        </Button>
-      </Form>
+          {/* Botón Agregar Producto */}
+          <button
+            type="button"
+            onClick={agregarProducto}
+            className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Agregar Producto
+          </button>
+        </div>
+      </div>
 
-      <h2>Lista de Productos</h2>
+      {/* Lista de Productos */}
+      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl mt-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Lista de Productos</h2>
 
-      <Table>
-        <thead>
-          <TableRow>
-            <TableHeader>Código</TableHeader>
-            <TableHeader>Descripción</TableHeader>
-            <TableHeader>Precio Unitario</TableHeader>
-          </TableRow>
-        </thead>
-        <tbody>
-          {productos.map((producto, index) => (
-            <TableRow key={index}>
-              <TableCell>{producto.codigo}</TableCell>
-              <TableCell>{producto.descripcion}</TableCell>
-              <TableCell>${producto.precio}</TableCell>
-            </TableRow>
-          ))}
-        </tbody>
-      </Table>
-    </Container>
+        {/* Tabla de Productos */}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-blue-600 text-white">
+                <th className="p-4 text-left">Código</th>
+                <th className="p-4 text-left">Descripción</th>
+                <th className="p-4 text-left">Precio Unitario</th>
+              </tr>
+            </thead>
+            <tbody>
+              {productos.map((producto, index) => (
+                <tr key={index} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="p-4">{producto.codigo}</td>
+                  <td className="p-4">{producto.descripcion}</td>
+                  <td className="p-4">${producto.precio}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   );
 };
 

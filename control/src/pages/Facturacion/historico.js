@@ -1,44 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
-  min-height: 100vh;
-  padding: 20px;
-`;
-
-const Header = styled.h1`
-  color: #333;
-  margin-bottom: 20px;
-`;
-
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-`;
-
-const TableHeader = styled.th`
-  border: 1px solid #ddd;
-  padding: 8px;
-  background-color: #007bff;
-  color: white;
-`;
-
-const TableRow = styled.tr`
-  &:nth-child(even) {
-    background-color: #f2f2f2;
-  }
-`;
-
-const TableCell = styled.td`
-  border: 1px solid #ddd;
-  padding: 8px;
-`;
 
 const VerHistorico = () => {
   const [historico, setHistorico] = useState([]);
@@ -58,32 +18,38 @@ const VerHistorico = () => {
   }, []);
 
   return (
-    <Container>
-      <Header>Historial de Facturas</Header>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center p-6 font-sans">
+      {/* Header */}
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">Historial de Facturas</h1>
 
-      <Table>
-        <thead>
-          <TableRow>
-            <TableHeader>ID</TableHeader>
-            <TableHeader>Descripción</TableHeader>
-            <TableHeader>Cantidad</TableHeader>
-            <TableHeader>Total</TableHeader>
-            <TableHeader>Fecha</TableHeader>
-          </TableRow>
-        </thead>
-        <tbody>
-          {historico.map((factura) => (
-            <TableRow key={factura.id}>
-              <TableCell>{factura.id}</TableCell>
-              <TableCell>{factura.descripcion}</TableCell>
-              <TableCell>{factura.cantidad}</TableCell>
-              <TableCell>${factura.total}</TableCell>
-              <TableCell>{factura.fecha}</TableCell> {/* Se muestra la fecha aquí */}
-            </TableRow>
-          ))}
-        </tbody>
-      </Table>
-    </Container>
+      {/* Tabla de Histórico */}
+      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-6xl">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-blue-600 text-white">
+                <th className="p-4 text-left">ID</th>
+                <th className="p-4 text-left">Descripción</th>
+                <th className="p-4 text-left">Cantidad</th>
+                <th className="p-4 text-left">Total</th>
+                <th className="p-4 text-left">Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              {historico.map((factura) => (
+                <tr key={factura.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="p-4">{factura.id}</td>
+                  <td className="p-4">{factura.descripcion}</td>
+                  <td className="p-4">{factura.cantidad}</td>
+                  <td className="p-4">${factura.total}</td>
+                  <td className="p-4">{factura.fecha}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   );
 };
 
