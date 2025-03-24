@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { FiUser, FiLock, FiArrowRight } from 'react-icons/fi';
+import logo from '../../recursos/logo.png'
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -9,92 +10,96 @@ const LoginPage = () => {
 
   const handleLogin = () => {
     if (username === 'admin' && password === 'admin') {
-      navigate('/main'); // Redirige a la página principal
+      navigate('/main');
     } else {
       alert("Credenciales incorrectas");
     }
   };
 
   return (
-    <LoginContainer>
-      <LoginForm>
-        <Title>Iniciar Sesión</Title>
-        <Input 
-          type="text" 
-          placeholder="Usuario" 
-          value={username} 
-          onChange={(e) => setUsername(e.target.value)} 
-        />
-        <Input 
-          type="password" 
-          placeholder="Contraseña" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)} 
-        />
-        <LoginButton onClick={handleLogin}>Iniciar Sesión</LoginButton>
-        <ForgotPassword>¿Olvidaste tu contraseña?</ForgotPassword>
-      </LoginForm>
-    </LoginContainer>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 to-blue-900 relative overflow-hidden">
+      {/* Efecto de partículas de fondo */}
+      <div className="absolute inset-0 opacity-10">
+        {[...Array(50)].map((_, i) => (
+          <div 
+            key={i}
+            className="absolute w-1 h-1 bg-white rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animation: `float ${Math.random() * 5 + 5}s infinite`
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Tarjeta de Login */}
+      <div className="relative bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-md border border-white/20">
+        <div className="mb-10 text-center">
+          <img 
+            src={logo} // Reemplaza con tu logo
+            alt="Logo FSoftSolutions"
+            className="w-32 mx-auto mb-6"
+          />
+          <h2 className="text-3xl font-bold text-white mb-2">Bienvenido</h2>
+          <p className="text-white/80">Ingresa tus credenciales para continuar</p>
+        </div>
+
+        {/* Formulario */}
+        <div className="space-y-6">
+          <div>
+            <label className="block text-white/80 text-sm mb-2">Usuario</label>
+            <div className="relative">
+              <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60" />
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 transition-all"
+                placeholder="Usuario"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-white/80 text-sm mb-2">Contraseña</label>
+            <div className="relative">
+              <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60" />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 transition-all"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={handleLogin}
+            className="w-full flex items-center justify-center space-x-2 bg-white text-indigo-900 py-4 rounded-lg font-semibold hover:bg-opacity-90 transition-all"
+          >
+            <span>Iniciar Sesión</span>
+            <FiArrowRight className="text-xl" />
+          </button>
+
+          <div className="text-center">
+            <a href="#" className="text-white/70 text-sm hover:text-white transition-colors">
+              ¿Olvidaste tu contraseña?
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Estilos de animación */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-20px); }
+        }
+      `}</style>
+    </div>
   );
 };
-
-// Estilos con styled-components
-const LoginContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background: linear-gradient(135deg, #6a11cb, #2575fc);
-`;
-
-const LoginForm = styled.div`
-  width: 100%;
-  max-width: 400px;
-  padding: 40px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  text-align: center;
-`;
-
-const Title = styled.h2`
-  font-size: 2rem;
-  margin-bottom: 20px;
-  color: #333;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  font-size: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-sizing: border-box;
-`;
-
-const LoginButton = styled.button`
-  width: 100%;
-  padding: 12px;
-  font-size: 1rem;
-  background: linear-gradient(135deg, #6a11cb, #2575fc);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.3s;
-
-  &:hover {
-    background: linear-gradient(135deg, #5b0ea6, #1e63d4);
-  }
-`;
-
-const ForgotPassword = styled.p`
-  margin-top: 20px;
-  font-size: 0.9rem;
-  color: #666;
-  cursor: pointer;
-  text-decoration: underline;
-`;
 
 export default LoginPage;

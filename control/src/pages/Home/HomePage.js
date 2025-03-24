@@ -1,5 +1,4 @@
 import React from 'react';
-import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import enero from '../../../src/recursos/enero.jpg';
 import febrero from '../../../src/recursos/febrero.jpg';
@@ -14,97 +13,6 @@ import octubre from '../../../src/recursos/octubre.png';
 import noviembre from '../../../src/recursos/noviembre.jpg';
 import diciembre from '../../../src/recursos/diciembre.jpg';
 import logo from '../../../src/recursos/logo.png';
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: 'Roboto', sans-serif;
-  background-color: #eaeaea;
-  min-height: 100vh;
-  padding: 20px;
-  position: relative;
-`;
-
-const Header = styled.h1`
-  color: #222;
-  margin-bottom: 10px;
-  font-size: 2.5rem;
-  font-weight: bold;
-`;
-
-const SubHeader = styled.h2`
-  color: #555;
-  margin-bottom: 30px;
-  font-size: 1.8rem;
-`;
-
-const CardGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  width: 100%;
-  max-width: 1200px;
-`;
-
-const Card = styled.div`
-  background-color: #f7f9fc;
-  color: #000;
-  padding: 0;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-
-  &:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-  }
-`;
-
-const CardImage = styled.img`
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  border-radius: 12px 12px 0 0;
-`;
-
-const CardContent = styled.div`
-  padding: 15px;
-  font-size: 1.2rem;
-  font-weight: bold;
-`;
-
-const StyledLink = styled(Link)`
-  text-decoration: none;
-  color: inherit;
-`;
-
-const ButtonContainer = styled.div`
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  display: flex;
-  gap: 15px;
-`;
-
-const Button = styled.button`
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-
-  &:hover {
-    background-color: #0056b3;
-    transform: translateY(-2px);
-  }
-`;
 
 const months = [
   { name: 'Enero', value: '2024-01', image: enero },
@@ -123,34 +31,43 @@ const months = [
 
 const HomePage = () => {
   return (
-    <Container>
-      <div className="logo-container">
-        <img src={logo} alt="Logo" className="logo" style={{ width: '120px', height: 'auto' }} />
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center p-6">
+      {/* Logo */}
+      <div className="mb-8">
+        <img src={logo} alt="Logo" className="w-32" />
       </div>
-      <Header>Sistema de control de actividades</Header>
-      <SubHeader>Seleccione un mes</SubHeader>
-      <CardGrid>
+
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">Sistema de Control de Actividades</h1>
+        <h2 className="text-xl text-gray-600">Seleccione un mes</h2>
+      </div>
+
+      {/* Card Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-6xl">
         {months.map((month) => (
-          <StyledLink key={month.value} to={`/actividades/${month.value}`}>
-            <Card>
-              <CardImage src={month.image} alt={month.name} />
-              <CardContent>{month.name}</CardContent>
-            </Card>
-          </StyledLink>
+          <Link
+            key={month.value}
+            to={`/actividades/${month.value}`}
+            className="group block rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300"
+          >
+            <div className="relative">
+              <img
+                src={month.image}
+                alt={month.name}
+                className="w-full h-48 object-cover"
+              />
+              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300" />
+            </div>
+            <div className="bg-white p-4">
+              <h3 className="text-xl font-semibold text-gray-900 text-center">
+                {month.name}
+              </h3>
+            </div>
+          </Link>
         ))}
-      </CardGrid>
-      <ButtonContainer>
-        <Link to="/opciones">
-          <Button>Opciones</Button>
-        </Link>
-        <Link to="/trabajo">
-          <Button>Trabajo</Button>
-        </Link>
-        <Link to="/facturacion">
-          <Button>Facturación</Button>
-        </Link>
-      </ButtonContainer>
-    </Container>
+      </div>
+    </div>
   );
 };
 

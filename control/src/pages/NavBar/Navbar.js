@@ -1,41 +1,20 @@
 import React from 'react';
-import styled from 'styled-components';
 import logo from '../../../src/recursos/logo.png';
 
 const NavBar = () => {
   return (
-    <NavBarContainer>
-      <LogoContainer>
-        <Logo src={logo} alt="Logo" />
-      </LogoContainer>
-    </NavBarContainer>
+    <nav className="fixed top-0 left-0 w-full flex items-center justify-center h-20 bg-white/95 backdrop-blur-md border-b border-gray-100 z-50">
+      <div className="w-full max-w-7xl px-6">
+        <div className="flex items-center">
+          <img 
+            src={logo} 
+            alt="Logo" 
+            className="h-10 w-auto transition-opacity hover:opacity-80"
+          />
+        </div>
+      </div>
+    </nav>
   );
 };
-
-// Estilos con styled-components
-
-const NavBarContainer = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  padding: 10px 20px;
-  background-color: #f5f5f5; /* Cambiado a gris claro */
-  color: #333; /* Texto oscuro si necesitas otros elementos en la barra */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-`;
-
-const LogoContainer = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
-const Logo = styled.img`
-  width: 120px;
-  height: auto;
-`;
 
 export default NavBar;

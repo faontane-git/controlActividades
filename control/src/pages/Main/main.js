@@ -1,90 +1,113 @@
 import React from 'react';
-import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../NavBar/Navbar';
+import { FiSettings, FiBriefcase, FiDollarSign, FiActivity, FiUser, FiBell } from 'react-icons/fi';
 
 const MainPage = () => {
   const navigate = useNavigate();
 
   return (
-    <MainContainer>
+    <div className="min-h-screen bg-gray-50">
       <NavBar />
-      <Header>
-        <Title>Página Principal</Title>
-      </Header>
-      <ButtonContainer>
-        <ActionButton onClick={() => alert('Navegando a Opciones')}>Opciones</ActionButton>
-        <ActionButton onClick={() => navigate('/trabajo')}>Trabajo</ActionButton>
-        <ActionButton onClick={() => alert('Navegando a Facturación')}>Facturación</ActionButton>
-        <ActionButton onClick={() => alert('Navegando a Actividades')}>Actividades</ActionButton>
-      </ButtonContainer>
-    </MainContainer>
+      <div className="pt-20"> {/* Margen superior igual a la altura del NavBar */}
+        <div className="container mx-auto px-6 py-8">
+          {/* Header Section */}
+          <div className="grid gap-8 mb-12 md:grid-cols-2">
+            {/* Welcome Message */}
+            <div className="bg-white p-8 rounded-xl shadow-sm">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Bienvenido de vuelta, Fabrizzio</h1>
+              <p className="text-gray-500">Último acceso: Hoy a las 14:30</p>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid gap-4">
+              <div className="bg-white p-6 rounded-xl shadow-sm flex items-center gap-4">
+                <FiBriefcase className="text-blue-500" size={24} />
+                <div>
+                  <h3 className="text-sm text-gray-500">Proyectos Activos</h3>
+                  <p className="text-xl font-bold text-gray-900">4</p>
+                </div>
+              </div>
+              <div className="bg-white p-6 rounded-xl shadow-sm flex items-center gap-4">
+                <FiDollarSign className="text-green-500" size={24} />
+                <div>
+                  <h3 className="text-sm text-gray-500">Facturación Pendiente</h3>
+                  <p className="text-xl font-bold text-gray-900">$12,450</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <section className="mb-12">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Acciones Rápidas</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Action Cards */}
+              <div 
+                onClick={() => navigate('/trabajo')}
+                className="bg-white p-6 rounded-xl shadow-sm text-center cursor-pointer hover:shadow-md transition-shadow"
+              >
+                <FiBriefcase className="text-blue-500 mx-auto" size={32} />
+                <h3 className="text-lg font-semibold text-gray-900 mt-4">Trabajo</h3>
+                <p className="text-sm text-gray-500 mt-2">Gestión de proyectos y tareas</p>
+              </div>
+
+              <div 
+                onClick={() => navigate('/facturacion')}
+                className="bg-white p-6 rounded-xl shadow-sm text-center cursor-pointer hover:shadow-md transition-shadow"
+              >
+                <FiDollarSign className="text-green-500 mx-auto" size={32} />
+                <h3 className="text-lg font-semibold text-gray-900 mt-4">Facturación</h3>
+                <p className="text-sm text-gray-500 mt-2">Gestor financiero integrado</p>
+              </div>
+
+              <div 
+                onClick={() => navigate('/actividades')}
+                className="bg-white p-6 rounded-xl shadow-sm text-center cursor-pointer hover:shadow-md transition-shadow"
+              >
+                <FiActivity className="text-purple-500 mx-auto" size={32} />
+                <h3 className="text-lg font-semibold text-gray-900 mt-4">Actividades</h3>
+                <p className="text-sm text-gray-500 mt-2">Registro y seguimiento</p>
+              </div>
+
+              <div 
+                onClick={() => navigate('/configuracion')}
+                className="bg-white p-6 rounded-xl shadow-sm text-center cursor-pointer hover:shadow-md transition-shadow"
+              >
+                <FiSettings className="text-yellow-500 mx-auto" size={32} />
+                <h3 className="text-lg font-semibold text-gray-900 mt-4">Configuración</h3>
+                <p className="text-sm text-gray-500 mt-2">Personaliza tu experiencia</p>
+              </div>
+            </div>
+          </section>
+
+          {/* Recent Activity */}
+          <section>
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Actividad Reciente</h2>
+            <div className="bg-white p-6 rounded-xl shadow-sm">
+              <div className="space-y-4">
+                {/* Activity Items */}
+                <div className="flex items-center gap-4">
+                  <FiUser className="text-gray-500" size={20} />
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">Nuevo cliente agregado</h4>
+                    <p className="text-sm text-gray-500">Hace 2 horas - Cliente: TechSolutions Corp</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <FiBell className="text-gray-500" size={20} />
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">Recordatorio de pago</h4>
+                    <p className="text-sm text-gray-500">Factura #2456 vence en 3 días</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
   );
 };
-
-// Estilos de MainPage
-const MainContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #4f46e5, #7f83eb, #e0e7ff);
-  color: #333;
-  text-align: center;
-  padding: 20px;
-`;
-
-const Header = styled.div`
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding: 40px 0 20px;
-`;
-
-const Title = styled.h1`
-  font-size: 2.5rem;
-  color: #ffffffcc;
-  margin: 0;
-  letter-spacing: 1px;
-  animation: fadeIn 1.5s ease-in-out;
-
-  @keyframes fadeIn {
-    0% { opacity: 0; transform: translateY(-20px); }
-    100% { opacity: 1; transform: translateY(0); }
-  }
-`;
-
-const ButtonContainer = styled.div`
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  justify-content: center;
-  max-width: 800px;
-  margin-top: 40px;
-`;
-
-const ActionButton = styled.button`
-  padding: 15px 30px;
-  font-size: 1.2rem;
-  background: linear-gradient(135deg, #4338ca, #2563eb);
-  color: white;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: transform 0.3s, box-shadow 0.3s;
-  min-width: 150px;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-  }
-
-  &:active {
-    transform: scale(0.98);
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  }
-`;
 
 export default MainPage;
