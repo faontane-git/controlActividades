@@ -17,18 +17,22 @@ const NavBar = () => {
     <>
       {/* Barra de navegación superior */}
       <nav className="fixed top-0 left-0 w-full flex items-center h-20 bg-white/95 backdrop-blur-md border-b border-gray-100 z-50 shadow-sm">
-        <div className="w-full max-w-7xl mx-auto px-6 flex items-center justify-between">
-          {/* Botón para abrir el menú lateral */}
-          <button onClick={() => setSidebarOpen(true)} className="text-gray-700 text-2xl">
-            <FiMenu />
-          </button>
+        <div className="w-full max-w-7xl mx-auto flex items-center justify-between px-2">
+          {/* Contenedor de logo y botón de menú */}
+          <div className="flex items-center gap-1">
+            {/* Botón para abrir el menú lateral */}
+            <button onClick={() => setSidebarOpen(true)} className="text-gray-700 text-2xl ml-0">
+              <FiMenu />
+            </button>
 
-          {/* Logo */}
-          <img 
-            src={logo} 
-            alt="Logo" 
-            className="h-10 w-auto transition-opacity hover:opacity-80"
-          />
+            {/* Logo alineado completamente a la izquierda */}
+            <img 
+              src={logo} 
+              alt="Logo" 
+              className="h-10 w-auto transition-opacity hover:opacity-80 cursor-pointer ml-0"
+              onClick={() => navigate('/main')}
+            />
+          </div>
 
           {/* Menú desplegable de usuario */}
           <div className="relative">
@@ -60,7 +64,7 @@ const NavBar = () => {
           </button>
         </div>
         <nav className="p-4">
-          <button onClick={() => navigate('/')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
+          <button onClick={() => navigate('/main')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiHome className="mr-3" /> Inicio
           </button>
           <button onClick={() => navigate('/actividades')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
