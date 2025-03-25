@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiFileText, FiPlus, FiTrash2, FiLogOut, FiUser, FiDollarSign, FiPercent, FiDownload, FiMapPin, FiCreditCard, FiMail, FiPhone, FiArrowLeft } from 'react-icons/fi';
+import { FiFileText, FiPlus, FiTrash2, FiUser, FiDollarSign, FiPercent, FiDownload, FiMapPin, FiCreditCard, FiMail, FiPhone, FiArrowLeft } from 'react-icons/fi';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import logoEmpresa from '../../recursos/logo.png';
@@ -81,7 +81,7 @@ const GenerarFactura = () => {
   };
 
   const handleBack = () => {
-    navigate(-1); // Regresa a la página anterior
+    navigate(-1);
   };
 
   const generarPDF = () => {
@@ -119,26 +119,26 @@ const GenerarFactura = () => {
     <div className="min-h-screen bg-gray-50">
       <NavBar />
       
-      <main className="pt-28 pb-10 px-4 sm:px-6 lg:px-8">
-        {/* Botón de Atrás arriba del contenido */}
+      <main className="pt-20 pb-10 px-4 sm:px-6 lg:px-8">
+        {/* Fila superior con botón Atrás */}
         <div className="max-w-6xl mx-auto mb-6">
           <button 
             onClick={handleBack}
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+            className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition-colors"
           >
-            <FiArrowLeft className="text-xl" />
-            <span className="font-medium">Atrás</span>
+            <FiArrowLeft />
+            <span>Atrás</span>
           </button>
         </div>
 
         <div className="max-w-6xl mx-auto">
-          {/* Encabezado */}
+          {/* Encabezado centrado */}
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold text-gray-900">Generar Factura</h1>
             <p className="text-gray-600 mt-2">Complete los datos para generar una nueva factura</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Formulario */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
@@ -338,12 +338,22 @@ const GenerarFactura = () => {
 
             {/* Vista previa de factura */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                <FiFileText className="text-blue-500" />
-                Vista Previa de Factura
-              </h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <FiFileText className="text-blue-500" />
+                  Vista Previa de Factura
+                </h2>
+                {formData.productos.length > 0 && (
+                  <button 
+                    onClick={generarPDF}
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors"
+                  >
+                    <FiDownload />
+                    <span>Generar PDF</span>
+                  </button>
+                )}
+              </div>
 
-              {/* Esta es la sección que se convertirá en PDF */}
               <div ref={facturaRef} className="p-6 bg-white">
                 <div className="flex justify-between items-center mb-6">
                   <div className="w-32 h-32">
@@ -436,26 +446,6 @@ const GenerarFactura = () => {
                     <strong>Nota:</strong> Esta factura es válida como comprobante de venta según lo establecido en la normativa vigente.
                   </p>
                 </div>
-              </div>
-
-              <div className="mt-6 flex justify-between">
-                <button 
-                  onClick={handleBack}
-                  className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-6 rounded-lg transition-colors"
-                >
-                  <FiArrowLeft />
-                  Atrás
-                </button>
-                
-                {formData.productos.length > 0 && (
-                  <button 
-                    onClick={generarPDF}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg transition-colors"
-                  >
-                    <FiDownload />
-                    Generar Factura (PDF)
-                  </button>
-                )}
               </div>
             </div>
           </div>

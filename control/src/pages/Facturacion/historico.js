@@ -1,26 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiFileText, FiSearch, FiDownload, FiPrinter, FiLogOut, FiCalendar } from 'react-icons/fi';
-
-const NavBar = ({ onLogout }) => {
-  return (
-    <nav className="fixed top-0 left-0 w-full flex items-center h-16 bg-white shadow-md z-50 px-6">
-      <div className="w-full max-w-7xl mx-auto flex justify-between items-center">
-        <div className="flex items-center">
-          <FiFileText className="text-blue-600 text-2xl mr-3" />
-          <h1 className="text-xl font-bold text-gray-800">Historial de Facturas</h1>
-        </div>
-        <button
-          onClick={onLogout}
-          className="flex items-center gap-2 text-gray-600 hover:text-red-600 px-3 py-1 rounded-md transition-colors"
-        >
-          <FiLogOut />
-          <span className="hidden sm:inline">Cerrar sesión</span>
-        </button>
-      </div>
-    </nav>
-  );
-};
+import { FiFileText, FiSearch, FiDownload, FiPrinter, FiArrowLeft, FiCalendar } from 'react-icons/fi';
+import NavBar from '../NavBar/Navbar';
 
 const VerHistorico = () => {
   const navigate = useNavigate();
@@ -28,7 +9,6 @@ const VerHistorico = () => {
   const [filtro, setFiltro] = useState('');
 
   useEffect(() => {
-    // Simulación de carga de datos
     const cargarHistorico = () => {
       const datosSimulados = [
         { id: 1, cliente: 'Cliente A', descripcion: 'Producto A', cantidad: 2, total: 50, fecha: '2024-10-01' },
@@ -41,11 +21,11 @@ const VerHistorico = () => {
     cargarHistorico();
   }, []);
 
-  const handleLogout = () => {
-    navigate('/login');
+  const handleBack = () => {
+    navigate(-1);
   };
 
-  const facturasFiltradas = historico.filter(factura => 
+  const facturasFiltradas = historico.filter(factura =>
     factura.cliente.toLowerCase().includes(filtro.toLowerCase()) ||
     factura.descripcion.toLowerCase().includes(filtro.toLowerCase()) ||
     factura.id.toString().includes(filtro)
@@ -53,10 +33,19 @@ const VerHistorico = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <NavBar onLogout={handleLogout} />
-      
+      <NavBar />
       <main className="pt-20 pb-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
+
+          {/* Botón de Regresar */}
+          <button 
+            onClick={handleBack}
+            className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg transition-colors mb-6"
+          >
+            <FiArrowLeft className="text-lg" />
+            <span className="font-medium">Regresar</span>
+          </button>
+
           {/* Encabezado y controles */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
@@ -66,7 +55,7 @@ const VerHistorico = () => {
               </h1>
               <p className="text-gray-600 mt-1">Registro completo de todas las facturas emitidas</p>
             </div>
-            
+
             <div className="relative w-full md:w-64">
               <FiSearch className="absolute left-3 top-3 text-gray-400" />
               <input
@@ -76,26 +65,6 @@ const VerHistorico = () => {
                 onChange={(e) => setFiltro(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-            </div>
-          </div>
-
-          {/* Tarjeta de resumen */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-              <p className="text-sm text-gray-500">Total Facturas</p>
-              <p className="text-2xl font-bold">{historico.length}</p>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-              <p className="text-sm text-gray-500">Facturas este mes</p>
-              <p className="text-2xl font-bold">
-                {historico.filter(f => f.fecha.startsWith('2024-10')).length}
-              </p>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-              <p className="text-sm text-gray-500">Ingresos totales</p>
-              <p className="text-2xl font-bold">
-                ${historico.reduce((sum, f) => sum + f.total, 0)}
-              </p>
             </div>
           </div>
 
@@ -131,13 +100,13 @@ const VerHistorico = () => {
                         <td className="px-6 py-4 whitespace-nowrap">{factura.fecha}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <div className="flex justify-end gap-2">
-                            <button 
+                            <button
                               className="text-blue-500 hover:text-blue-700 p-1 rounded-full hover:bg-blue-50"
                               title="Descargar factura"
                             >
                               <FiDownload />
                             </button>
-                            <button 
+                            <button
                               className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-50"
                               title="Imprimir factura"
                             >
@@ -156,21 +125,6 @@ const VerHistorico = () => {
                   )}
                 </tbody>
               </table>
-            </div>
-          </div>
-
-          {/* Paginación (simulada) */}
-          <div className="flex justify-between items-center mt-6 bg-white px-6 py-3 rounded-lg shadow-sm border border-gray-100">
-            <div className="text-sm text-gray-500">
-              Mostrando 1 al {Math.min(3, facturasFiltradas.length)} de {facturasFiltradas.length} facturas
-            </div>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 border border-gray-300 rounded-md text-gray-700 disabled:opacity-50">
-                Anterior
-              </button>
-              <button className="px-3 py-1 border border-gray-300 rounded-md text-gray-700 disabled:opacity-50">
-                Siguiente
-              </button>
             </div>
           </div>
         </div>

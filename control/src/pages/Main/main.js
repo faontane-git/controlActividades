@@ -1,15 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../NavBar/Navbar';
-import { FiSettings, FiBriefcase, FiDollarSign, FiActivity, FiUser, FiBell } from 'react-icons/fi';
+import { FiSettings, FiBriefcase, FiDollarSign, FiActivity, FiUser, FiBell, FiChevronDown } from 'react-icons/fi';
 
 const MainPage = () => {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      <div className="pt-20"> {/* Margen superior igual a la altura del NavBar */}
+      <div className="relative pt-20"> {/* Margen superior igual a la altura del NavBar */}
+        <div className="absolute top-6 right-6">
+          <button 
+            onClick={() => setMenuOpen(!menuOpen)} 
+            className="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm hover:shadow-md transition"
+          >
+            <FiUser className="text-gray-700" size={20} />
+            <span className="text-gray-700">Cuenta</span>
+            <FiChevronDown className="text-gray-500" size={16} />
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg">
+              <button onClick={() => navigate('/perfil')} className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left">Perfil</button>
+              <button onClick={() => navigate('/configuracion')} className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left">Configuración</button>
+              <button onClick={() => navigate('/login')} className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left">Cerrar sesión</button>
+            </div>
+          )}
+        </div>
+
         <div className="container mx-auto px-6 py-8">
           {/* Header Section */}
           <div className="grid gap-8 mb-12 md:grid-cols-2">
