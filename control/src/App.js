@@ -15,6 +15,7 @@ import MainPage from './pages/Main/main';
 import PerfilPage from './pages/Cuenta/PerfilPage';
 import ConfiguracionPage from './pages/Cuenta/ConfiguracionPage';
 import MenuPage from './pages/Main/MenuPage';
+import Proyectos from './pages/Proyectos';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/main" element={<MainPage />} />
         <Route path="/actividades" element={<HomePage />} />
         <Route path="/opciones" element={<OptionsPage />} />
+        <Route path="/proyectos" element={<Proyectos />} />
         <Route path="/facturacion" element={<FacturacionPage />} />
         <Route path="/factura" element={<GenerarFactura />} />
         <Route path="/productos" element={<CrearProductos />} />

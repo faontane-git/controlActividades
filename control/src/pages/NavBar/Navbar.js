@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../../src/recursos/logo.png';
-import { FiLogOut, FiUser, FiChevronDown, FiMenu, FiX, FiHome, FiSettings, FiActivity } from 'react-icons/fi';
+import { 
+  FiLogOut, 
+  FiUser, 
+  FiChevronDown, 
+  FiMenu, 
+  FiX, 
+  FiHome, 
+  FiSettings, 
+  FiActivity, 
+  FiFolder,
+  FiFileText 
+} from 'react-icons/fi';
 
 const NavBar = () => {
   const navigate = useNavigate();
@@ -66,6 +77,12 @@ const NavBar = () => {
         <nav className="p-4">
           <button onClick={() => navigate('/main')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiHome className="mr-3" /> Inicio
+          </button>
+          <button onClick={() => navigate('/proyectos')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <FiFolder className="mr-3" /> Proyectos
+          </button>
+          <button onClick={() => navigate('/facturador')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <FiFileText className="mr-3" /> Facturador
           </button>
           <button onClick={() => navigate('/actividades')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiActivity className="mr-3" /> Actividades
