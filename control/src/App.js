@@ -35,6 +35,7 @@ function App() {
         <Route path="/trabajo" element={<TrabajoPage />} />
         <Route path="/perfil" element={<PerfilPage />} /> 
         <Route path="/configuracion" element={<ConfiguracionPage />} /> 
+        <Route path="/certificados" element={<CertificadosPage />} /> 
       </Routes>
     </Router>
   );
