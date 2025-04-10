@@ -21,6 +21,7 @@
     "react-modal": "^3.16.1",
     "react-router-dom": "^6.23.1",
     "react-scripts": "5.0.1",
+    "react-to-print": "^3.0.6",
     "styled-components": "^6.1.11",
     "sweetalert2": "^11.11.1",
     "web-vitals": "^2.1.4",

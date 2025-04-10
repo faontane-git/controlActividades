@@ -14,6 +14,7 @@ import LoginPage from './pages/Login/Login';
 import MainPage from './pages/Main/main';
 import PerfilPage from './pages/Cuenta/PerfilPage';
 import ConfiguracionPage from './pages/Cuenta/ConfiguracionPage';
+import CertificadosPage from './pages/Certificados/Certificados';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path="/trabajo" element={<TrabajoPage />} />
         <Route path="/perfil" element={<PerfilPage />} /> 
         <Route path="/configuracion" element={<ConfiguracionPage />} /> 
+        <Route path="/certificados" element={<CertificadosPage />} /> 
       </Routes>
     </Router>
   );

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../../src/recursos/logo.png';
-import { FiLogOut, FiUser, FiChevronDown, FiMenu, FiX, FiHome, FiSettings, FiActivity } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiChevronDown, FiMenu, FiX, FiHome, FiSettings, FiActivity, FiAward } from 'react-icons/fi';
 
 const NavBar = () => {
   const navigate = useNavigate();
@@ -47,6 +47,7 @@ const NavBar = () => {
             {menuOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg">
                 <button onClick={() => navigate('/perfil')} className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left">Perfil</button>
+                <button onClick={() => navigate('/certificados')} className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left">Mis Certificados</button>
                 <button onClick={() => navigate('/configuracion')} className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left">Configuración</button>
                 <button onClick={handleLogout} className="block px-4 py-2 text-red-600 hover:bg-gray-100 w-full text-left">Cerrar sesión</button>
               </div>
@@ -69,6 +70,9 @@ const NavBar = () => {
           </button>
           <button onClick={() => navigate('/actividades')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiActivity className="mr-3" /> Actividades
+          </button>
+          <button onClick={() => navigate('/certificados')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <FiAward className="mr-3" /> Certificados
           </button>
           <button onClick={() => navigate('/configuracion')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiSettings className="mr-3" /> Configuración
