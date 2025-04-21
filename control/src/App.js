@@ -17,6 +17,7 @@ import ConfiguracionPage from './pages/Cuenta/ConfiguracionPage';
 import CertificadosPage from './pages/Certificados/Certificados';
 import MenuPage from './pages/Main/MenuPage';
 import Proyectos from './pages/Proyectos';
+import DetalleProyecto from './pages/Proyectos/DetalleProyecto';
 
 function App() {
   return (
@@ -33,9 +34,10 @@ function App() {
         <Route path="/productos" element={<CrearProductos />} />
         <Route path="/historico" element={<VerHistorico />} />
         <Route path="/trabajo" element={<TrabajoPage />} />
-        <Route path="/perfil" element={<PerfilPage />} /> 
-        <Route path="/configuracion" element={<ConfiguracionPage />} /> 
-        <Route path="/certificados" element={<CertificadosPage />} /> 
+        <Route path="/perfil" element={<PerfilPage />} />
+        <Route path="/configuracion" element={<ConfiguracionPage />} />
+        <Route path="/certificados" element={<CertificadosPage />} />
+        <Route path="/proyectos/:id" element={<DetalleProyecto />} />
       </Routes>
     </Router>
   );

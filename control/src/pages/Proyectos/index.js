@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiFolder } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import NavBar from '../NavBar/Navbar';
 
 const Proyectos = () => {
-  // Estado para los proyectos
   const [proyectos, setProyectos] = useState([]);
   const [proyectoEditando, setProyectoEditando] = useState(null);
   const [nuevoProyecto, setNuevoProyecto] = useState({
@@ -14,9 +14,9 @@ const Proyectos = () => {
   });
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
-  // Cargar proyectos al montar el componente
+  const navigate = useNavigate();
+
   useEffect(() => {
-    // Aquí iría la llamada a tu API
     const proyectosIniciales = [
       { id: 1, nombre: 'Sitio Web Corporativo', descripcion: 'Desarrollo del sitio web principal', fechaInicio: '2023-01-15', fechaFin: '2023-03-30' },
       { id: 2, nombre: 'App Móvil', descripcion: 'Desarrollo aplicación móvil iOS/Android', fechaInicio: '2023-02-10', fechaFin: '2023-05-20' }
@@ -24,7 +24,6 @@ const Proyectos = () => {
     setProyectos(proyectosIniciales);
   }, []);
 
-  // Manejar cambios en el formulario
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (proyectoEditando) {
@@ -34,7 +33,6 @@ const Proyectos = () => {
     }
   };
 
-  // Crear nuevo proyecto
   const crearProyecto = (e) => {
     e.preventDefault();
     const proyecto = {
@@ -46,33 +44,33 @@ const Proyectos = () => {
     setMostrarFormulario(false);
   };
 
-  // Editar proyecto
   const editarProyecto = (proyecto) => {
     setProyectoEditando({ ...proyecto });
   };
 
-  // Guardar cambios al editar
   const guardarEdicion = (e) => {
     e.preventDefault();
     setProyectos(proyectos.map(p => p.id === proyectoEditando.id ? proyectoEditando : p));
     setProyectoEditando(null);
   };
 
-  // Eliminar proyecto
   const eliminarProyecto = (id) => {
     setProyectos(proyectos.filter(p => p.id !== id));
   };
 
-  // Cancelar edición
   const cancelarEdicion = () => {
     setProyectoEditando(null);
+  };
+
+  const irADetalle = (id) => {
+    navigate(`/proyectos/${id}`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      
-      <div className="container mx-auto px-4 py-8 pt-24"> {/* pt-24 para dejar espacio para el NavBar */}
+
+      <div className="container mx-auto px-4 py-8 pt-24">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center">
             <FiFolder className="text-2xl text-blue-600 mr-3" />
@@ -86,7 +84,6 @@ const Proyectos = () => {
           </button>
         </div>
 
-        {/* Formulario para nuevo proyecto */}
         {mostrarFormulario && (
           <div className="bg-white p-6 rounded-lg shadow-md mb-6">
             <h2 className="text-xl font-semibold mb-4">Crear Nuevo Proyecto</h2>
@@ -156,7 +153,6 @@ const Proyectos = () => {
           </div>
         )}
 
-        {/* Formulario para editar proyecto */}
         {proyectoEditando && (
           <div className="bg-white p-6 rounded-lg shadow-md mb-6">
             <h2 className="text-xl font-semibold mb-4">Editar Proyecto</h2>
@@ -226,7 +222,6 @@ const Proyectos = () => {
           </div>
         )}
 
-        {/* Listado de proyectos */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -251,10 +246,16 @@ const Proyectos = () => {
                       {proyecto.fechaInicio} a {proyecto.fechaFin}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    <button
+                      onClick={() => irADetalle(proyecto.id)}
+                      className="text-green-600 hover:text-green-900"
+                    >
+                      Ver
+                    </button>
                     <button
                       onClick={() => editarProyecto(proyecto)}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
+                      className="text-blue-600 hover:text-blue-900"
                     >
                       <FiEdit2 />
                     </button>
