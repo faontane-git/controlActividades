@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import styled, { keyframes } from 'styled-components';
 import { v4 as uuidv4 } from 'uuid';
 import { FaClipboardList, FaCode, FaCheckCircle } from 'react-icons/fa';
 import NavBar from '../NavBar/Navbar';
 
+// Función para determinar el color del texto según el fondo
 const getTextColor = (bgColor) => {
   const lightColors = ['#ffc107', '#28a745', '#f0f0f0', '#f9f871'];
   return lightColors.includes(bgColor) ? '#333' : '#fff';
@@ -220,6 +222,12 @@ const EditableTextarea = styled.textarea`
   min-height: 100px;
 `;
 
+const TaskList = styled.div`
+  padding: 8px;
+  flex-grow: 1;
+  min-height: 100px;
+`;
+
 const SoftwareBoard = () => {
   const [columns, setColumns] = useState({
     backlog: {
@@ -277,8 +285,8 @@ const SoftwareBoard = () => {
   };
 
   // Abrir modal en pantalla completa con la tarea seleccionada
-  const openTaskInFullscreen = (task) => {
-    setExpandedTask(task);
+  const openTaskInFullscreen = (task, columnId) => {
+    setExpandedTask({ ...task, fromColumn: columnId });
   };
 
   // Cerrar modal
@@ -309,6 +317,50 @@ const SoftwareBoard = () => {
     closeModal();
   };
 
+  // Manejar el drag and drop
+  const onDragEnd = (result) => {
+    const { source, destination } = result;
+
+    // Si no hay destino o es el mismo lugar, no hacer nada
+    if (!destination || 
+        (source.droppableId === destination.droppableId && 
+         source.index === destination.index)) {
+      return;
+    }
+
+    const sourceColumn = columns[source.droppableId];
+    const destColumn = columns[destination.droppableId];
+    const sourceItems = [...sourceColumn.items];
+    const destItems = [...destColumn.items];
+    const [removed] = sourceItems.splice(source.index, 1);
+
+    // Si es la misma columna, solo reordenar
+    if (source.droppableId === destination.droppableId) {
+      sourceItems.splice(destination.index, 0, removed);
+      setColumns({
+        ...columns,
+        [source.droppableId]: {
+          ...sourceColumn,
+          items: sourceItems,
+        },
+      });
+    } else {
+      // Mover a otra columna
+      destItems.splice(destination.index, 0, removed);
+      setColumns({
+        ...columns,
+        [source.droppableId]: {
+          ...sourceColumn,
+          items: sourceItems,
+        },
+        [destination.droppableId]: {
+          ...destColumn,
+          items: destItems,
+        },
+      });
+    }
+  };
+
   return (
     <Container>
       <NavBarContainer>
@@ -325,29 +377,54 @@ const SoftwareBoard = () => {
         <Button type="submit">Agregar Tarea</Button>
       </Form>
 
-      <Board>
-        {Object.entries(columns).map(([columnId, column]) => (
-          <Column key={columnId}>
-            <ColumnHeader>
-              <HeaderIcon>
-                {columnId === 'backlog' && <FaClipboardList />}
-                {columnId === 'inDevelopment' && <FaCode />}
-                {columnId === 'done' && <FaCheckCircle />}
-              </HeaderIcon>
-              {column.name}
-            </ColumnHeader>
-            {column.items.map((task) => (
-              <Task
-                key={task.id}
-                color={task.color}
-                onClick={() => openTaskInFullscreen({ ...task, fromColumn: columnId })}
-              >
-                {task.content}
-              </Task>
-            ))}
-          </Column>
-        ))}
-      </Board>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Board>
+          {Object.entries(columns).map(([columnId, column]) => (
+            <Droppable droppableId={columnId} key={columnId}>
+              {(provided) => (
+                <Column
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                >
+                  <ColumnHeader>
+                    <HeaderIcon>
+                      {columnId === 'backlog' && <FaClipboardList />}
+                      {columnId === 'inDevelopment' && <FaCode />}
+                      {columnId === 'done' && <FaCheckCircle />}
+                    </HeaderIcon>
+                    {column.name}
+                  </ColumnHeader>
+                  <TaskList>
+                    {column.items.map((task, index) => (
+                      <Draggable
+                        key={task.id}
+                        draggableId={task.id}
+                        index={index}
+                      >
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                          >
+                            <Task
+                              color={task.color}
+                              onClick={() => openTaskInFullscreen(task, columnId)}
+                            >
+                              {task.content}
+                            </Task>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </TaskList>
+                </Column>
+              )}
+            </Droppable>
+          ))}
+        </Board>
+      </DragDropContext>
 
       {expandedTask && (
         <FullscreenModal>

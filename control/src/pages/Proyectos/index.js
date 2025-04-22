@@ -1,279 +1,378 @@
-import React, { useState, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiFolder } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import styled, { keyframes } from 'styled-components';
+import { v4 as uuidv4 } from 'uuid';
+import { FaClipboardList, FaCode, FaCheckCircle } from 'react-icons/fa';
 import NavBar from '../NavBar/Navbar';
 
-const Proyectos = () => {
-  const [proyectos, setProyectos] = useState([]);
-  const [proyectoEditando, setProyectoEditando] = useState(null);
-  const [nuevoProyecto, setNuevoProyecto] = useState({
-    nombre: '',
-    descripcion: '',
-    fechaInicio: '',
-    fechaFin: ''
+const getTextColor = (bgColor) => {
+  const lightColors = ['#ffc107', '#28a745', '#f0f0f0', '#f9f871'];
+  return lightColors.includes(bgColor) ? '#333' : '#fff';
+};
+
+// Animación para el modal
+const fadeInScale = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
+// Estilos del contenedor principal y navbar
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background-image: url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjUyOXwwfDF8c2VhcmNofDF8fGJsYWNrYm9hcmQlMjBiYWNrZ3JvdW5kfGVufDB8fHx8MTY0MzI2NzYxNQ&ixlib=rb-1.2.1&q=80&w=400'); 
+  background-size: cover;
+  background-position: center;
+  padding: 20px;
+  font-family: 'Roboto', sans-serif;
+`;
+
+const NavBarContainer = styled.div`
+  width: 100%;
+  margin-bottom: 50px;
+`;
+
+// Estilos del tablero y columnas
+const Board = styled.div`
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+`;
+
+const Column = styled.div`
+  background-color: #f7f9fc;
+  border-radius: 12px;
+  padding: 20px;
+  width: 280px;
+  min-height: 500px;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+// Encabezado de la columna con icono
+const ColumnHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: black;
+  color: white;
+  padding: 10px;
+  border-radius: 8px 8px 0 0;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const HeaderIcon = styled.div`
+  margin-right: 10px;
+`;
+
+// Estilos de las tarjetas (tareas)
+const Task = styled.div`
+  background-color: ${(props) => props.color};
+  padding: 12px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 139, 0.4);
+  width: 180px;
+  height: 140px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  font-size: 0.8rem;
+  text-align: center;
+  color: ${(props) => getTextColor(props.color)};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  &:hover {
+    transform: translateY(-5px) rotate(1deg);
+    box-shadow: 0 8px 20px rgba(0, 0, 139, 0.5);
+  }
+`;
+
+// Modal de pantalla completa para expandir tarea
+const FullscreenModal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background-color: ${(props) => props.color || 'black'};
+  width: 90%;
+  max-width: 800px;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  font-size: 1rem;
+  position: relative;
+  animation: ${fadeInScale} 0.4s ease;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  &:hover {
+    background-color: #a61c24;
+  }
+`;
+
+const DeleteButton = styled.button`
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  &:hover {
+    background-color: #a61c24;
+  }
+`;
+
+// Estilos del formulario para añadir tareas
+const Form = styled.form`
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+`;
+
+const Input = styled.input`
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  width: 300px;
+  font-size: 1rem;
+`;
+
+const Button = styled.button`
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  &:hover {
+    background-color: #0056b3;
+  }
+`;
+
+const EditableInput = styled.input`
+  width: 100%;
+  padding: 10px;
+  margin-top: 20px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+`;
+
+const EditableTextarea = styled.textarea`
+  width: 100%;
+  padding: 10px;
+  margin-top: 20px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+  min-height: 100px;
+`;
+
+const SoftwareBoard = () => {
+  const [columns, setColumns] = useState({
+    backlog: {
+      name: 'Backlog',
+      items: [{ id: uuidv4(), content: 'Implementar autenticación OAuth', color: '#007bff', description: '' }],
+    },
+    inDevelopment: {
+      name: 'En Desarrollo',
+      items: [{ id: uuidv4(), content: 'Crear UI para registro de usuarios', color: '#007bff', description: '' }],
+    },
+    done: {
+      name: 'Terminado',
+      items: [{ id: uuidv4(), content: 'Deploy a producción', color: '#007bff', description: '' }],
+    },
   });
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
-  const navigate = useNavigate();
+  const [newTask, setNewTask] = useState('');
+  const [taskColor, setTaskColor] = useState('#007bff');
+  const [expandedTask, setExpandedTask] = useState(null);
 
-  useEffect(() => {
-    const proyectosIniciales = [
-      { id: 1, nombre: 'Sitio Web Corporativo', descripcion: 'Desarrollo del sitio web principal', fechaInicio: '2023-01-15', fechaFin: '2023-03-30' },
-      { id: 2, nombre: 'App Móvil', descripcion: 'Desarrollo aplicación móvil iOS/Android', fechaInicio: '2023-02-10', fechaFin: '2023-05-20' }
-    ];
-    setProyectos(proyectosIniciales);
-  }, []);
+  const colors = [
+    { value: '#007bff', label: 'Azul' },
+    { value: '#28a745', label: 'Verde' },
+    { value: '#ffc107', label: 'Amarillo' },
+    { value: '#dc3545', label: 'Rojo' },
+    { value: '#6f42c1', label: 'Morado' },
+  ];
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    if (proyectoEditando) {
-      setProyectoEditando({ ...proyectoEditando, [name]: value });
-    } else {
-      setNuevoProyecto({ ...nuevoProyecto, [name]: value });
-    }
-  };
-
-  const crearProyecto = (e) => {
+  // Agregar nueva tarea
+  const addNewTask = (e) => {
     e.preventDefault();
-    const proyecto = {
-      id: proyectos.length > 0 ? Math.max(...proyectos.map(p => p.id)) + 1 : 1,
-      ...nuevoProyecto
-    };
-    setProyectos([...proyectos, proyecto]);
-    setNuevoProyecto({ nombre: '', descripcion: '', fechaInicio: '', fechaFin: '' });
-    setMostrarFormulario(false);
+    if (!newTask.trim()) return;
+
+    setColumns((prevColumns) => ({
+      ...prevColumns,
+      backlog: {
+        ...prevColumns.backlog,
+        items: [...prevColumns.backlog.items, { id: uuidv4(), content: newTask, color: taskColor, description: '' }],
+      },
+    }));
+    setNewTask('');
   };
 
-  const editarProyecto = (proyecto) => {
-    setProyectoEditando({ ...proyecto });
+  // Eliminar tarea
+  const deleteTask = (taskId, fromColumnId) => {
+    const newItems = columns[fromColumnId].items.filter((task) => task.id !== taskId);
+    setColumns((prevColumns) => ({
+      ...prevColumns,
+      [fromColumnId]: {
+        ...prevColumns[fromColumnId],
+        items: newItems,
+      },
+    }));
+    setExpandedTask(null);
   };
 
-  const guardarEdicion = (e) => {
-    e.preventDefault();
-    setProyectos(proyectos.map(p => p.id === proyectoEditando.id ? proyectoEditando : p));
-    setProyectoEditando(null);
+  // Abrir modal en pantalla completa con la tarea seleccionada
+  const openTaskInFullscreen = (task) => {
+    setExpandedTask(task);
   };
 
-  const eliminarProyecto = (id) => {
-    setProyectos(proyectos.filter(p => p.id !== id));
+  // Cerrar modal
+  const closeModal = () => {
+    setExpandedTask(null);
   };
 
-  const cancelarEdicion = () => {
-    setProyectoEditando(null);
+  // Editar contenido de la tarjeta
+  const handleTaskChange = (field, value) => {
+    setExpandedTask((prevTask) => ({
+      ...prevTask,
+      [field]: value,
+    }));
   };
 
-  const irADetalle = (id) => {
-    navigate(`/proyectos/${id}`);
+  // Guardar cambios en la tarjeta
+  const saveTaskChanges = () => {
+    const updatedItems = columns[expandedTask.fromColumn].items.map((item) =>
+      item.id === expandedTask.id ? { ...item, content: expandedTask.content, description: expandedTask.description } : item
+    );
+    setColumns((prevColumns) => ({
+      ...prevColumns,
+      [expandedTask.fromColumn]: {
+        ...prevColumns[expandedTask.fromColumn],
+        items: updatedItems,
+      },
+    }));
+    closeModal();
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <NavBar />
+    <Container>
+      <NavBarContainer>
+        <NavBar />
+      </NavBarContainer>
 
-      <div className="container mx-auto px-4 py-8 pt-24">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center">
-            <FiFolder className="text-2xl text-blue-600 mr-3" />
-            <h1 className="text-2xl font-bold text-gray-800">Gestión de Proyectos</h1>
-          </div>
-          <button
-            onClick={() => setMostrarFormulario(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
-          >
-            <FiPlus className="mr-2" /> Nuevo Proyecto
-          </button>
-        </div>
+      <Form onSubmit={addNewTask}>
+        <Input
+          type="text"
+          placeholder="Nueva tarea para el Backlog"
+          value={newTask}
+          onChange={(e) => setNewTask(e.target.value)}
+        />
+        <Button type="submit">Agregar Tarea</Button>
+      </Form>
 
-        {mostrarFormulario && (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h2 className="text-xl font-semibold mb-4">Crear Nuevo Proyecto</h2>
-            <form onSubmit={crearProyecto}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-gray-700 mb-2">Nombre</label>
-                  <input
-                    type="text"
-                    name="nombre"
-                    value={nuevoProyecto.nombre}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700 mb-2">Descripción</label>
-                  <input
-                    type="text"
-                    name="descripcion"
-                    value={nuevoProyecto.descripcion}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700 mb-2">Fecha Inicio</label>
-                  <input
-                    type="date"
-                    name="fechaInicio"
-                    value={nuevoProyecto.fechaInicio}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700 mb-2">Fecha Fin</label>
-                  <input
-                    type="date"
-                    name="fechaFin"
-                    value={nuevoProyecto.fechaFin}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setMostrarFormulario(false)}
-                  className="px-4 py-2 border rounded-lg text-gray-700"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-                >
-                  Guardar
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+      <Board>
+        {Object.entries(columns).map(([columnId, column]) => (
+          <Column key={columnId}>
+            <ColumnHeader>
+              <HeaderIcon>
+                {columnId === 'backlog' && <FaClipboardList />}
+                {columnId === 'inDevelopment' && <FaCode />}
+                {columnId === 'done' && <FaCheckCircle />}
+              </HeaderIcon>
+              {column.name}
+            </ColumnHeader>
+            {column.items.map((task) => (
+              <Task
+                key={task.id}
+                color={task.color}
+                onClick={() => openTaskInFullscreen({ ...task, fromColumn: columnId })}
+              >
+                {task.content}
+              </Task>
+            ))}
+          </Column>
+        ))}
+      </Board>
 
-        {proyectoEditando && (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h2 className="text-xl font-semibold mb-4">Editar Proyecto</h2>
-            <form onSubmit={guardarEdicion}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-gray-700 mb-2">Nombre</label>
-                  <input
-                    type="text"
-                    name="nombre"
-                    value={proyectoEditando.nombre}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700 mb-2">Descripción</label>
-                  <input
-                    type="text"
-                    name="descripcion"
-                    value={proyectoEditando.descripcion}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700 mb-2">Fecha Inicio</label>
-                  <input
-                    type="date"
-                    name="fechaInicio"
-                    value={proyectoEditando.fechaInicio}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700 mb-2">Fecha Fin</label>
-                  <input
-                    type="date"
-                    name="fechaFin"
-                    value={proyectoEditando.fechaFin}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={cancelarEdicion}
-                  className="px-4 py-2 border rounded-lg text-gray-700"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-                >
-                  Guardar Cambios
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fechas</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {proyectos.map((proyecto) => (
-                <tr key={proyecto.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-medium text-gray-900">{proyecto.nombre}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-gray-600">{proyecto.descripcion}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-gray-600">
-                      {proyecto.fechaInicio} a {proyecto.fechaFin}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <button
-                      onClick={() => irADetalle(proyecto.id)}
-                      className="text-green-600 hover:text-green-900"
-                    >
-                      Ver
-                    </button>
-                    <button
-                      onClick={() => editarProyecto(proyecto)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      <FiEdit2 />
-                    </button>
-                    <button
-                      onClick={() => eliminarProyecto(proyecto.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+      {expandedTask && (
+        <FullscreenModal>
+          <ModalContent color={expandedTask.color}>
+            <EditableInput
+              type="text"
+              value={expandedTask.content}
+              onChange={(e) => handleTaskChange('content', e.target.value)}
+              placeholder="Título de la tarea"
+            />
+            <EditableTextarea
+              value={expandedTask.description}
+              onChange={(e) => handleTaskChange('description', e.target.value)}
+              placeholder="Descripción de la tarea"
+            />
+            <Button onClick={saveTaskChanges}>Guardar Cambios</Button>
+            <CloseButton onClick={closeModal}>Cerrar</CloseButton>
+            <DeleteButton onClick={() => deleteTask(expandedTask.id, expandedTask.fromColumn)}>
+              Eliminar
+            </DeleteButton>
+          </ModalContent>
+        </FullscreenModal>
+      )}
+    </Container>
   );
 };
 
-export default Proyectos;
+export default SoftwareBoard;
