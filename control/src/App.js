@@ -1,4 +1,3 @@
-// App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from '../src/pages/Home/HomePage';
@@ -18,6 +17,7 @@ import MenuPage from './pages/Main/MenuPage';
 import Proyectos from './pages/Proyectos';
 import DetalleProyecto from './pages/Proyectos/DetalleProyecto';
 import SoftwareBoard from './pages/Proyectos';
+import NewProject from './pages/Proyectos/NuevoProyecto';
 
 function App() {
   return (
@@ -28,16 +28,23 @@ function App() {
         <Route path="/main" element={<MainPage />} />
         <Route path="/actividades" element={<HomePage />} />
         <Route path="/opciones" element={<OptionsPage />} />
+        
+        {/* Rutas de Proyectos */}
         <Route path="/proyectos" element={<Proyectos />} />
+        <Route path="/proyectos/nuevo" element={<NewProject />} />
+        <Route path="/proyectos/:id" element={<DetalleProyecto />} />
+        
+        {/* Rutas de Facturación */}
         <Route path="/facturador" element={<FacturacionPage />} />
         <Route path="/factura" element={<GenerarFactura />} />
         <Route path="/productos" element={<CrearProductos />} />
         <Route path="/historico" element={<VerHistorico />} />
+        
+        {/* Otras rutas */}
         <Route path="/trabajo" element={<SoftwareBoard />} />
         <Route path="/perfil" element={<PerfilPage />} />
         <Route path="/configuracion" element={<ConfiguracionPage />} />
         <Route path="/certificados" element={<CertificadosPage />} />
-        <Route path="/proyectos/:id" element={<DetalleProyecto />} />
       </Routes>
     </Router>
   );

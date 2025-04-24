@@ -85,9 +85,6 @@ const NavBar = () => {
           <button onClick={() => navigate('/facturador')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiFileText className="mr-3" /> Facturador
           </button>
-          <button onClick={() => navigate('/actividades')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
-            <FiActivity className="mr-3" /> Actividades
-          </button>
           <button onClick={() => navigate('/certificados')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiAward className="mr-3" /> Certificados
           </button>

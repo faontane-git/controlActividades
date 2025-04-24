@@ -1,312 +1,307 @@
 import React, { useState } from 'react';
-import styled, { keyframes } from 'styled-components';
-import { v4 as uuidv4 } from 'uuid';
-import { FaClipboardList, FaCode, FaCheckCircle } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
+import { FaSearch, FaFilter, FaPlus, FaArrowRight, FaClock, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import NavBar from '../NavBar/Navbar';
 
-const getTextColor = (bgColor) => {
-  const lightColors = ['#ffc107', '#28a745', '#f0f0f0', '#f9f871'];
-  return lightColors.includes(bgColor) ? '#333' : '#fff';
-};
-
-// Animación para el modal
-const fadeInScale = keyframes`
-  from {
-    opacity: 0;
-    transform: scale(0.7);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-`;
-
-// Estilos del contenedor principal y navbar
+// Estilos del contenedor principal
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
   min-height: 100vh;
-  background-image: url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjUyOXwwfDF8c2VhcmNofDF8fGJsYWNrYm9hcmQlMjBiYWNrZ3JvdW5kfGVufDB8fHx8MTY0MzI2NzYxNQ&ixlib=rb-1.2.1&q=80&w=400'); 
-  background-size: cover;
-  background-position: center;
-  padding: 20px;
+  background-color: #f5f7fa;
   font-family: 'Roboto', sans-serif;
+  padding-top: 80px; /* Espacio para el NavBar */
 `;
 
 const NavBarContainer = styled.div`
   width: 100%;
-  margin-bottom: 50px;
-`;
-
-// Estilos del tablero y columnas
-const Board = styled.div`
-  display: flex;
-  gap: 20px;
-  padding: 20px;
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
-  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
-  width: 90%;
-  max-width: 1400px;
-  margin: 0 auto;
-  position: relative;
-`;
-
-const Column = styled.div`
-  background-color: #f7f9fc;
-  border-radius: 12px;
-  padding: 20px;
-  width: 280px;
-  min-height: 500px;
-  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.05);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
-// Encabezado de la columna con icono
-const ColumnHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: black;
-  color: white;
-  padding: 10px;
-  border-radius: 8px 8px 0 0;
-  font-size: 1.1rem;
-  text-transform: uppercase;
-  width: 180px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-const HeaderIcon = styled.div`
-  margin-right: 10px;
-`;
-
-// Estilos de las tarjetas (tareas)
-const Task = styled.div`
-  background-color: ${(props) => props.color};
-  padding: 12px;
-  margin-bottom: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 139, 0.4);
-  width: 180px;
-  height: 140px;
-  font-family: 'Comic Sans MS', cursive, sans-serif;
-  font-size: 0.8rem;
-  text-align: center;
-  color: ${(props) => getTextColor(props.color)};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
-  &:hover {
-    transform: translateY(-5px) rotate(1deg);
-    box-shadow: 0 8px 20px rgba(0, 0, 139, 0.5);
-  }
-`;
-
-// Modal de pantalla completa para expandir tarea
-const FullscreenModal = styled.div`
   position: fixed;
   top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   z-index: 1000;
 `;
 
-const ModalContent = styled.div`
-  background-color: ${(props) => props.color || 'black'};
-  width: 90%;
-  max-width: 800px;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  text-align: center;
-  font-size: 1rem;
-  position: relative;
-  animation: ${fadeInScale} 0.4s ease;
+const ContentContainer = styled.div`
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 `;
 
-const CloseButton = styled.button`
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  &:hover {
-    background-color: #a61c24;
-  }
-`;
-
-const DeleteButton = styled.button`
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  &:hover {
-    background-color: #a61c24;
-  }
-`;
-
-// Estilos del formulario para añadir tareas
-const Form = styled.form`
+const Header = styled.div`
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-`;
-
-const Input = styled.input`
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  width: 300px;
-  font-size: 1rem;
-`;
-
-const Button = styled.button`
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  &:hover {
-    background-color: #0056b3;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
 `;
 
-const EditableInput = styled.input`
-  width: 100%;
-  padding: 10px;
-  margin-top: 20px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  font-size: 1rem;
+const Title = styled.h1`
+  font-size: 2rem;
+  color: #1f2937;
+  margin: 0;
 `;
 
-const EditableTextarea = styled.textarea`
-  width: 100%;
-  padding: 10px;
-  margin-top: 20px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  font-size: 1rem;
-  min-height: 100px;
+const Actions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+  }
 `;
 
-const SoftwareBoard = () => {
-  const [columns, setColumns] = useState({
-    backlog: {
-      name: 'Backlog',
-      items: [{ id: uuidv4(), content: 'Implementar autenticación OAuth', color: '#007bff', description: '' }],
+const SearchFilterContainer = styled.div`
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+  }
+`;
+
+const SearchContainer = styled.div`
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  
+  @media (min-width: 768px) {
+    width: 300px;
+  }
+`;
+
+const SearchInput = styled.input`
+  border: none;
+  outline: none;
+  flex-grow: 1;
+  padding: 0.5rem;
+`;
+
+const FilterButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 100%;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+
+  svg {
+    margin-right: 0.5rem;
+  }
+  
+  @media (min-width: 768px) {
+    width: auto;
+  }
+`;
+
+const AddButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 100%;
+
+  &:hover {
+    background-color: #2563eb;
+  }
+
+  svg {
+    margin-right: 0.5rem;
+  }
+  
+  @media (min-width: 768px) {
+    width: auto;
+  }
+`;
+
+const ProjectsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+`;
+
+const ProjectCard = styled.div`
+  background-color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  }
+`;
+
+const ProjectHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+`;
+
+const ProjectTitle = styled.h2`
+  font-size: 1.25rem;
+  color: #1f2937;
+  margin: 0;
+`;
+
+const ProjectStatus = styled.span`
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  background-color: ${props => {
+    switch(props.status) {
+      case 'completed': return '#d1fae5';
+      case 'in-progress': return '#fef3c7';
+      case 'not-started': return '#fee2e2';
+      default: return '#e5e7eb';
+    }
+  }};
+  color: ${props => {
+    switch(props.status) {
+      case 'completed': return '#065f46';
+      case 'in-progress': return '#92400e';
+      case 'not-started': return '#991b1b';
+      default: return '#4b5563';
+    }
+  }};
+`;
+
+const ProjectDescription = styled.p`
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`;
+
+const ProjectMeta = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #6b7280;
+  font-size: 0.8rem;
+`;
+
+const ProjectDates = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const ProjectDate = styled.div`
+  display: flex;
+  align-items: center;
+
+  svg {
+    margin-right: 0.25rem;
+  }
+`;
+
+const ViewButton = styled.button`
+  display: flex;
+  align-items: center;
+  background-color: #e5e7eb;
+  color: #4b5563;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #d1d5db;
+  }
+
+  svg {
+    margin-left: 0.5rem;
+  }
+`;
+
+const ProjectsList = () => {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState('all');
+  
+  // Datos mock de proyectos
+  const [projects] = useState([
+    {
+      id: 1,
+      nombre: 'Sitio Web Corporativo',
+      descripcion: 'Desarrollo del sitio web principal para la empresa XYZ con funcionalidades de e-commerce y blog integrado.',
+      fechaInicio: '2023-01-15',
+      fechaFin: '2023-06-30',
+      estado: 'in-progress',
+      progreso: 65
     },
-    inDevelopment: {
-      name: 'En Desarrollo',
-      items: [{ id: uuidv4(), content: 'Crear UI para registro de usuarios', color: '#007bff', description: '' }],
-    },
-    done: {
-      name: 'Terminado',
-      items: [{ id: uuidv4(), content: 'Deploy a producción', color: '#007bff', description: '' }],
-    },
+    // ... (otros proyectos del ejemplo anterior)
+  ]);
+
+  const filteredProjects = projects.filter(project => {
+    const matchesSearch = project.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         project.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filter === 'all' || project.estado === filter;
+    return matchesSearch && matchesFilter;
   });
 
-  const [newTask, setNewTask] = useState('');
-  const [taskColor, setTaskColor] = useState('#007bff');
-  const [expandedTask, setExpandedTask] = useState(null);
-
-  const colors = [
-    { value: '#007bff', label: 'Azul' },
-    { value: '#28a745', label: 'Verde' },
-    { value: '#ffc107', label: 'Amarillo' },
-    { value: '#dc3545', label: 'Rojo' },
-    { value: '#6f42c1', label: 'Morado' },
-  ];
-
-  // Agregar nueva tarea
-  const addNewTask = (e) => {
-    e.preventDefault();
-    if (!newTask.trim()) return;
-
-    setColumns((prevColumns) => ({
-      ...prevColumns,
-      backlog: {
-        ...prevColumns.backlog,
-        items: [...prevColumns.backlog.items, { id: uuidv4(), content: newTask, color: taskColor, description: '' }],
-      },
-    }));
-    setNewTask('');
+  const getStatusIcon = (status) => {
+    switch(status) {
+      case 'completed': return <FaCheckCircle />;
+      case 'in-progress': return <FaClock />;
+      case 'not-started': return <FaExclamationTriangle />;
+      default: return null;
+    }
   };
 
-  // Eliminar tarea
-  const deleteTask = (taskId, fromColumnId) => {
-    const newItems = columns[fromColumnId].items.filter((task) => task.id !== taskId);
-    setColumns((prevColumns) => ({
-      ...prevColumns,
-      [fromColumnId]: {
-        ...prevColumns[fromColumnId],
-        items: newItems,
-      },
-    }));
-    setExpandedTask(null);
+  const getStatusText = (status) => {
+    switch(status) {
+      case 'completed': return 'Completado';
+      case 'in-progress': return 'En progreso';
+      case 'not-started': return 'No iniciado';
+      default: return 'Desconocido';
+    }
   };
 
-  // Abrir modal en pantalla completa con la tarea seleccionada
-  const openTaskInFullscreen = (task) => {
-    setExpandedTask(task);
+  const handleViewProject = (projectId) => {
+    navigate(`/proyectos/${projectId}`);
   };
 
-  // Cerrar modal
-  const closeModal = () => {
-    setExpandedTask(null);
-  };
-
-  // Editar contenido de la tarjeta
-  const handleTaskChange = (field, value) => {
-    setExpandedTask((prevTask) => ({
-      ...prevTask,
-      [field]: value,
-    }));
-  };
-
-  // Guardar cambios en la tarjeta
-  const saveTaskChanges = () => {
-    const updatedItems = columns[expandedTask.fromColumn].items.map((item) =>
-      item.id === expandedTask.id ? { ...item, content: expandedTask.content, description: expandedTask.description } : item
-    );
-    setColumns((prevColumns) => ({
-      ...prevColumns,
-      [expandedTask.fromColumn]: {
-        ...prevColumns[expandedTask.fromColumn],
-        items: updatedItems,
-      },
-    }));
-    closeModal();
+  const handleAddProject = () => {
+    navigate('/proyectos/nuevo');
   };
 
   return (
@@ -315,64 +310,60 @@ const SoftwareBoard = () => {
         <NavBar />
       </NavBarContainer>
 
-      <Form onSubmit={addNewTask}>
-        <Input
-          type="text"
-          placeholder="Nueva tarea para el Backlog"
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
-        />
-        <Button type="submit">Agregar Tarea</Button>
-      </Form>
+      <ContentContainer>
+        <Header>
+          <Title>Mis Proyectos</Title>
+          <Actions>
+            <SearchFilterContainer>
+              <SearchContainer>
+                <FaSearch />
+                <SearchInput 
+                  type="text" 
+                  placeholder="Buscar proyectos..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </SearchContainer>
+              <FilterButton>
+                <FaFilter /> Filtros
+              </FilterButton>
+            </SearchFilterContainer>
+            <AddButton onClick={handleAddProject}>
+              <FaPlus /> Nuevo Proyecto
+            </AddButton>
+          </Actions>
+        </Header>
 
-      <Board>
-        {Object.entries(columns).map(([columnId, column]) => (
-          <Column key={columnId}>
-            <ColumnHeader>
-              <HeaderIcon>
-                {columnId === 'backlog' && <FaClipboardList />}
-                {columnId === 'inDevelopment' && <FaCode />}
-                {columnId === 'done' && <FaCheckCircle />}
-              </HeaderIcon>
-              {column.name}
-            </ColumnHeader>
-            {column.items.map((task) => (
-              <Task
-                key={task.id}
-                color={task.color}
-                onClick={() => openTaskInFullscreen({ ...task, fromColumn: columnId })}
-              >
-                {task.content}
-              </Task>
-            ))}
-          </Column>
-        ))}
-      </Board>
-
-      {expandedTask && (
-        <FullscreenModal>
-          <ModalContent color={expandedTask.color}>
-            <EditableInput
-              type="text"
-              value={expandedTask.content}
-              onChange={(e) => handleTaskChange('content', e.target.value)}
-              placeholder="Título de la tarea"
-            />
-            <EditableTextarea
-              value={expandedTask.description}
-              onChange={(e) => handleTaskChange('description', e.target.value)}
-              placeholder="Descripción de la tarea"
-            />
-            <Button onClick={saveTaskChanges}>Guardar Cambios</Button>
-            <CloseButton onClick={closeModal}>Cerrar</CloseButton>
-            <DeleteButton onClick={() => deleteTask(expandedTask.id, expandedTask.fromColumn)}>
-              Eliminar
-            </DeleteButton>
-          </ModalContent>
-        </FullscreenModal>
-      )}
+        <ProjectsGrid>
+          {filteredProjects.map(project => (
+            <ProjectCard key={project.id} onClick={() => handleViewProject(project.id)}>
+              <ProjectHeader>
+                <ProjectTitle>{project.nombre}</ProjectTitle>
+                <ProjectStatus status={project.estado}>
+                  {getStatusIcon(project.estado)}
+                  {getStatusText(project.estado)}
+                </ProjectStatus>
+              </ProjectHeader>
+              <ProjectDescription>{project.descripcion}</ProjectDescription>
+              <ProjectMeta>
+                <ProjectDates>
+                  <ProjectDate>
+                    <FaClock /> Inicio: {new Date(project.fechaInicio).toLocaleDateString()}
+                  </ProjectDate>
+                  <ProjectDate>
+                    <FaCheckCircle /> Fin: {new Date(project.fechaFin).toLocaleDateString()}
+                  </ProjectDate>
+                </ProjectDates>
+                <ViewButton>
+                  Ver <FaArrowRight />
+                </ViewButton>
+              </ProjectMeta>
+            </ProjectCard>
+          ))}
+        </ProjectsGrid>
+      </ContentContainer>
     </Container>
   );
 };
 
-export default SoftwareBoard;
+export default ProjectsList;
