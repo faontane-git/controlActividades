@@ -226,8 +226,8 @@ const NewProject = () => {
       descripcion: formData.descripcion,
       fechainicio: formData.fechaInicio,
       fechafin: formData.fechaFin,
-      estado: 'Planificado', // o el estado inicial que desees
-      progreso: 0, // puedes ajustarlo si es necesario
+      estado: 'Iniciado',  
+      progreso: 0,  
       fecha_creacion: new Date().toISOString(),
       actualizado_en: new Date().toISOString()
     };

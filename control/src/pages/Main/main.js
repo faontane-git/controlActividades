@@ -1,16 +1,78 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../NavBar/Navbar';
 import { 
   FiSettings, FiBriefcase, FiDollarSign, FiActivity, 
   FiUser, FiBell, FiChevronDown, FiTrendingUp,
-  FiPieChart, FiCalendar, FiClock, FiUsers
+  FiPieChart, FiCalendar, FiClock, FiUsers, FiFileText
 } from 'react-icons/fi';
 import { Bar, Pie, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, registerables } from 'chart.js';
 
 // Registra los componentes necesarios de Chart.js
 ChartJS.register(...registerables);
+
+const TaxCountdown = () => {
+  const [daysLeft, setDaysLeft] = useState(0);
+  const [nextDate, setNextDate] = useState('');
+
+  useEffect(() => {
+    const calculateDaysLeft = () => {
+      const today = new Date();
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth();
+      
+      // Fecha de declaración para el mes actual (día 20)
+      const taxDateCurrentMonth = new Date(currentYear, currentMonth, 20);
+      
+      // Fecha de declaración para el próximo mes (por si ya pasó el día 20)
+      const taxDateNextMonth = new Date(currentYear, currentMonth + 1, 20);
+      
+      // Determinar cuál fecha usar (la próxima que venga)
+      const nextTaxDate = today <= taxDateCurrentMonth ? taxDateCurrentMonth : taxDateNextMonth;
+      
+      // Calcular diferencia en días
+      const diffTime = nextTaxDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      // Formatear fecha para mostrar
+      const options = { day: 'numeric', month: 'long' };
+      const formattedDate = nextTaxDate.toLocaleDateString('es-ES', options);
+      
+      setDaysLeft(diffDays);
+      setNextDate(formattedDate);
+    };
+
+    calculateDaysLeft();
+  }, []);
+
+  // Estilo condicional para cuando queden pocos días
+  const getCountdownStyle = () => {
+    if (daysLeft <= 3) {
+      return 'bg-red-100 text-red-800';
+    } else if (daysLeft <= 7) {
+      return 'bg-yellow-100 text-yellow-800';
+    }
+    return 'bg-green-100 text-green-800';
+  };
+
+  return (
+    <div className="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
+      <div className="p-3 bg-red-100 rounded-lg">
+        <FiFileText className="text-red-500" size={20} />
+      </div>
+      <div>
+        <h3 className="text-sm text-gray-500">Próxima declaración</h3>
+        <p className="text-xl font-bold text-gray-900">
+          <span className={`text-xs font-normal mr-2 px-2 py-0.5 rounded-full ${getCountdownStyle()}`}>
+            {daysLeft} {daysLeft === 1 ? 'día' : 'días'}
+          </span>
+          {nextDate}
+        </p>
+      </div>
+    </div>
+  );
+};
 
 const MainPage = () => {
   const navigate = useNavigate();
@@ -98,6 +160,7 @@ const MainPage = () => {
 
             {/* Quick Stats */}
             <div className="grid grid-cols-2 gap-4">
+              <TaxCountdown />
               <div className="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
                 <div className="p-3 bg-blue-100 rounded-lg">
                   <FiBriefcase className="text-blue-500" size={20} />
@@ -123,15 +186,6 @@ const MainPage = () => {
                 <div>
                   <h3 className="text-sm text-gray-500">Clientes</h3>
                   <p className="text-xl font-bold text-gray-900">24</p>
-                </div>
-              </div>
-              <div className="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
-                <div className="p-3 bg-yellow-100 rounded-lg">
-                  <FiClock className="text-yellow-500" size={20} />
-                </div>
-                <div>
-                  <h3 className="text-sm text-gray-500">Horas esta semana</h3>
-                  <p className="text-xl font-bold text-gray-900">36</p>
                 </div>
               </div>
             </div>

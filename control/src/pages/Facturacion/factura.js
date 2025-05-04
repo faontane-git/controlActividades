@@ -26,20 +26,20 @@ const GenerarFactura = () => {
   });
 
   const [productoActual, setProductoActual] = useState({
-    descripcion: '', 
-    cantidad: '', 
-    precio: '' 
+    descripcion: '',
+    cantidad: '',
+    precio: ''
   });
 
   const facturaRef = useRef();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name in formData.cliente) {
-      setFormData(prev => ({ 
-        ...prev, 
-        cliente: { ...prev.cliente, [name]: value } 
+      setFormData(prev => ({
+        ...prev,
+        cliente: { ...prev.cliente, [name]: value }
       }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
@@ -53,7 +53,7 @@ const GenerarFactura = () => {
 
   const agregarProducto = () => {
     if (!productoActual.descripcion || !productoActual.cantidad || !productoActual.precio) return;
-    
+
     setFormData(prev => ({
       ...prev,
       productos: [...prev.productos, {
@@ -84,45 +84,116 @@ const GenerarFactura = () => {
     navigate(-1);
   };
 
-  const generarPDF = () => {
-    const input = facturaRef.current;
-    
-    html2canvas(input, {
-      scale: 2,
-      logging: false,
-      useCORS: true,
-      allowTaint: true
-    }).then(canvas => {
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 190;
-      const pageHeight = 295;
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 10;
-
-      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+  const guardarFacturaEnSupabase = async (formData) => {
+    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+    const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+  
+    let productos = formData.productos;
+    if (!Array.isArray(productos)) {
+      try {
+        productos = JSON.parse(productos);
+      } catch (err) {
+        console.error('❌ productos no se pudo convertir a array:', err);
+        return null;
       }
+    }
+  
+    const subtotal = productos.reduce(
+      (total, p) => total + p.cantidad * p.precio,
+      0
+    );
+    const iva = parseFloat(((subtotal * formData.iva) / 100).toFixed(2));
+    const total = parseFloat((subtotal + iva).toFixed(2));
+  
+    const payload = {
+      numero_factura: formData.numeroFactura || Math.floor(Math.random() * 10000) + 1000,
+      fecha: formData.fecha,
+      cliente_nombre: formData.cliente.nombre,
+      cliente_identificacion: formData.cliente.identificacion,
+      tipo_identificacion: formData.cliente.tipoIdentificacion,
+      cliente_direccion: formData.cliente.direccion,
+      cliente_telefono: formData.cliente.telefono,
+      cliente_email: formData.cliente.email,
+      productos,
+      subtotal,
+      iva,
+      total,
+      forma_pago: formData.formaPago,
+      observaciones: formData.observaciones
+    };
+  
+    try {
+      const response = await fetch(`${supabaseUrl}/rest/v1/facturas`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          Prefer: 'return=representation'
+        },
+        body: JSON.stringify(payload)
+      });
+  
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('❌ Error al guardar factura:', error);
+        return null;
+      }
+  
+      const data = await response.json();
+      console.log('✅ Factura guardada correctamente:', data[0]);
+      return data[0];
+    } catch (err) {
+      console.error('❌ Error al conectarse a Supabase:', err);
+      return null;
+    }
+  };
+  
 
-      pdf.save(`factura_${formData.numeroFactura}.pdf`);
-    });
+  const generarPDF = async () => {
+    const input = facturaRef.current;
+    const canvas = await html2canvas(input, { scale: 2, useCORS: true });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF();
+    const imgWidth = 190;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+    pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+    pdf.save(`factura_${formData.numeroFactura}.pdf`);
+
+    // Guardar en Supabase
+    try {
+      const facturaPayload = {
+        numero: formData.numeroFactura.toString(),
+        fecha: formData.fecha,
+        cliente: formData.cliente.nombre,
+        identificacion: formData.cliente.identificacion,
+        direccion: formData.cliente.direccion,
+        telefono: formData.cliente.telefono,
+        email: formData.cliente.email,
+        tipo_identificacion: formData.cliente.tipoIdentificacion,
+        forma_pago: formData.formaPago,
+        observaciones: formData.observaciones,
+        productos: JSON.stringify(formData.productos),
+        subtotal: calcularTotal(),
+        iva: parseFloat(calcularIVA()),
+        total: parseFloat(calcularTotal()) + parseFloat(calcularIVA())
+      };
+      await guardarFacturaEnSupabase(facturaPayload);
+      alert('✅ Factura guardada correctamente en la base de datos.');
+    } catch (err) {
+      console.error('❌ Error al guardar la factura:', err);
+      alert('❌ Hubo un error al guardar la factura.');
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      
+
       <main className="pt-20 pb-10 px-4 sm:px-6 lg:px-8">
         {/* Fila superior con botón Atrás */}
         <div className="max-w-6xl mx-auto mb-6">
-          <button 
+          <button
             onClick={handleBack}
             className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition-colors"
           >
@@ -145,7 +216,7 @@ const GenerarFactura = () => {
                 <FiUser className="text-blue-500" />
                 Datos del Cliente
               </h2>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nombre/Razón Social</label>
@@ -344,7 +415,7 @@ const GenerarFactura = () => {
                   Vista Previa de Factura
                 </h2>
                 {formData.productos.length > 0 && (
-                  <button 
+                  <button
                     onClick={generarPDF}
                     className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors"
                   >
@@ -357,9 +428,9 @@ const GenerarFactura = () => {
               <div ref={facturaRef} className="p-6 bg-white">
                 <div className="flex justify-between items-center mb-6">
                   <div className="w-32 h-32">
-                    <img 
-                      src={logoEmpresa} 
-                      alt="Logo de la empresa" 
+                    <img
+                      src={logoEmpresa}
+                      alt="Logo de la empresa"
                       className="w-full h-full object-contain"
                     />
                   </div>
