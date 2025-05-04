@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaSearch, FaFilter, FaPlus, FaArrowRight, FaClock, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import {
+  FaSearch,
+  FaFilter,
+  FaPlus,
+  FaArrowRight,
+  FaClock,
+  FaCheckCircle,
+  FaExclamationTriangle,
+} from 'react-icons/fa';
 import NavBar from '../NavBar/Navbar';
 
 // Estilos del contenedor principal
@@ -11,7 +19,7 @@ const Container = styled.div`
   min-height: 100vh;
   background-color: #f5f7fa;
   font-family: 'Roboto', sans-serif;
-  padding-top: 80px; /* Espacio para el NavBar */
+  padding-top: 80px;
 `;
 
 const NavBarContainer = styled.div`
@@ -33,7 +41,7 @@ const Header = styled.div`
   flex-direction: column;
   gap: 1.5rem;
   margin-bottom: 2rem;
-  
+
   @media (min-width: 768px) {
     flex-direction: row;
     justify-content: space-between;
@@ -51,7 +59,7 @@ const Actions = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  
+
   @media (min-width: 768px) {
     flex-direction: row;
     align-items: center;
@@ -62,7 +70,7 @@ const SearchFilterContainer = styled.div`
   display: flex;
   gap: 1rem;
   flex-direction: column;
-  
+
   @media (min-width: 768px) {
     flex-direction: row;
   }
@@ -76,7 +84,7 @@ const SearchContainer = styled.div`
   padding: 0.5rem 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   width: 100%;
-  
+
   @media (min-width: 768px) {
     width: 300px;
   }
@@ -109,7 +117,7 @@ const FilterButton = styled.button`
   svg {
     margin-right: 0.5rem;
   }
-  
+
   @media (min-width: 768px) {
     width: auto;
   }
@@ -136,7 +144,7 @@ const AddButton = styled.button`
   svg {
     margin-right: 0.5rem;
   }
-  
+
   @media (min-width: 768px) {
     width: auto;
   }
@@ -183,19 +191,27 @@ const ProjectStatus = styled.span`
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
   background-color: ${props => {
-    switch(props.status) {
-      case 'completed': return '#d1fae5';
-      case 'in-progress': return '#fef3c7';
-      case 'not-started': return '#fee2e2';
-      default: return '#e5e7eb';
+    switch (props.status) {
+      case 'completed':
+        return '#d1fae5';
+      case 'in-progress':
+        return '#fef3c7';
+      case 'not-started':
+        return '#fee2e2';
+      default:
+        return '#e5e7eb';
     }
   }};
   color: ${props => {
-    switch(props.status) {
-      case 'completed': return '#065f46';
-      case 'in-progress': return '#92400e';
-      case 'not-started': return '#991b1b';
-      default: return '#4b5563';
+    switch (props.status) {
+      case 'completed':
+        return '#065f46';
+      case 'in-progress':
+        return '#92400e';
+      case 'not-started':
+        return '#991b1b';
+      default:
+        return '#4b5563';
     }
   }};
 `;
@@ -252,57 +268,107 @@ const ViewButton = styled.button`
   }
 `;
 
+// Spinner de carga
+const SpinnerContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 70vh;
+`;
+
+const Spinner = styled.div`
+  border: 6px solid #e5e7eb;
+  border-top: 6px solid #3b82f6;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  animation: spin 1s linear infinite;
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
 const ProjectsList = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
-  
-  // Datos mock de proyectos
-  const [projects] = useState([
-    {
-      id: 1,
-      nombre: 'Sitio Web Corporativo',
-      descripcion: 'Desarrollo del sitio web principal para la empresa XYZ con funcionalidades de e-commerce y blog integrado.',
-      fechaInicio: '2023-01-15',
-      fechaFin: '2023-06-30',
-      estado: 'in-progress',
-      progreso: 65
-    },
-    // ... (otros proyectos del ejemplo anterior)
-  ]);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const res = await fetch(`${process.env.REACT_APP_SUPABASE_URL}/rest/v1/proyectos`, {
+          headers: {
+            apikey: process.env.REACT_APP_SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await res.json();
+        setProjects(data);
+      } catch (error) {
+        console.error('Error al cargar proyectos:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
 
   const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         project.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      project.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.descripcion?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === 'all' || project.estado === filter;
     return matchesSearch && matchesFilter;
   });
 
-  const getStatusIcon = (status) => {
-    switch(status) {
-      case 'completed': return <FaCheckCircle />;
-      case 'in-progress': return <FaClock />;
-      case 'not-started': return <FaExclamationTriangle />;
-      default: return null;
+  const getStatusIcon = status => {
+    switch (status) {
+      case 'completed':
+        return <FaCheckCircle />;
+      case 'in-progress':
+        return <FaClock />;
+      case 'not-started':
+        return <FaExclamationTriangle />;
+      default:
+        return null;
     }
   };
 
-  const getStatusText = (status) => {
-    switch(status) {
-      case 'completed': return 'Completado';
-      case 'in-progress': return 'En progreso';
-      case 'not-started': return 'No iniciado';
-      default: return 'Desconocido';
+  const getStatusText = status => {
+    switch (status) {
+      case 'completed':
+        return 'Completado';
+      case 'in-progress':
+        return 'En progreso';
+      case 'not-started':
+        return 'No iniciado';
+      default:
+        return 'Desconocido';
     }
   };
 
-  const handleViewProject = (projectId) => {
+  const handleViewProject = projectId => {
     navigate(`/proyectos/${projectId}`);
   };
 
   const handleAddProject = () => {
     navigate('/proyectos/nuevo');
   };
+
+  if (loading) {
+    return (
+      <SpinnerContainer>
+        <Spinner />
+      </SpinnerContainer>
+    );
+  }
 
   return (
     <Container>
@@ -317,11 +383,11 @@ const ProjectsList = () => {
             <SearchFilterContainer>
               <SearchContainer>
                 <FaSearch />
-                <SearchInput 
-                  type="text" 
-                  placeholder="Buscar proyectos..." 
+                <SearchInput
+                  type="text"
+                  placeholder="Buscar proyectos..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                 />
               </SearchContainer>
               <FilterButton>
@@ -340,18 +406,23 @@ const ProjectsList = () => {
               <ProjectHeader>
                 <ProjectTitle>{project.nombre}</ProjectTitle>
                 <ProjectStatus status={project.estado}>
-                  {getStatusIcon(project.estado)}
-                  {getStatusText(project.estado)}
+                  {getStatusIcon(project.estado)} {getStatusText(project.estado)}
                 </ProjectStatus>
               </ProjectHeader>
               <ProjectDescription>{project.descripcion}</ProjectDescription>
               <ProjectMeta>
                 <ProjectDates>
                   <ProjectDate>
-                    <FaClock /> Inicio: {new Date(project.fechaInicio).toLocaleDateString()}
+                    <FaClock /> Inicio:{' '}
+                    {project.fechainicio
+                      ? new Date(project.fechainicio).toLocaleDateString()
+                      : '-'}
                   </ProjectDate>
                   <ProjectDate>
-                    <FaCheckCircle /> Fin: {new Date(project.fechaFin).toLocaleDateString()}
+                    <FaCheckCircle /> Fin:{' '}
+                    {project.fechafin
+                      ? new Date(project.fechafin).toLocaleDateString()
+                      : '-'}
                   </ProjectDate>
                 </ProjectDates>
                 <ViewButton>
