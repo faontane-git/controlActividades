@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
 
-const Actividades = ({ actividades, onAddActividad, onSelectActividad }) => {
+const Actividades = ({ actividades = [], onAddActividad, onSelectActividad }) => {
   const [nuevaActividad, setNuevaActividad] = useState({
     nombre: '',
     descripcion: '',
@@ -10,6 +10,7 @@ const Actividades = ({ actividades, onAddActividad, onSelectActividad }) => {
     horasEstimadas: 0,
     microActividades: []
   });
+
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
   const handleInputChange = (e) => {
@@ -22,7 +23,8 @@ const Actividades = ({ actividades, onAddActividad, onSelectActividad }) => {
     const actividadCompleta = {
       ...nuevaActividad,
       id: actividades.length + 1,
-      horasEstimadas: parseInt(nuevaActividad.horasEstimadas)
+      horasEstimadas: parseInt(nuevaActividad.horasEstimadas),
+      microActividades: []  // Aseguramos array vacío al crear
     };
     onAddActividad(actividadCompleta);
     setNuevaActividad({
@@ -125,39 +127,43 @@ const Actividades = ({ actividades, onAddActividad, onSelectActividad }) => {
       )}
 
       <div className="space-y-4">
-        {actividades.map(actividad => (
-          <div 
-            key={actividad.id} 
-            className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => onSelectActividad(actividad)}
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-semibold text-lg text-gray-800">{actividad.nombre}</h3>
-                <p className="text-gray-600">{actividad.descripcion}</p>
-              </div>
-              <div className="text-right">
-                <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                  {actividad.horasEstimadas} horas
-                </span>
-                <div className="mt-1 text-sm text-gray-500">
-                  {actividad.fechaInicio} - {actividad.fechaFin}
+        {actividades.map(actividad => {
+          const micro = actividad.microActividades || actividad.microactividades || [];
+
+          return (
+            <div
+              key={actividad.id}
+              className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => onSelectActividad(actividad)}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-semibold text-lg text-gray-800">{actividad.nombre}</h3>
+                  <p className="text-gray-600">{actividad.descripcion}</p>
+                </div>
+                <div className="text-right">
+                  <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                    {actividad.horasEstimadas} horas
+                  </span>
+                  <div className="mt-1 text-sm text-gray-500">
+                    {actividad.fechaInicio} - {actividad.fechaFin}
+                  </div>
                 </div>
               </div>
+              <div className="mt-2 flex space-x-2">
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                  {micro.filter(m => m.estado === 'Finalizado').length} finalizadas
+                </span>
+                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                  {micro.filter(m => m.estado === 'Desarrollo').length} en desarrollo
+                </span>
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  {micro.filter(m => m.estado === 'Iniciado').length} iniciadas
+                </span>
+              </div>
             </div>
-            <div className="mt-2 flex space-x-2">
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                {actividad.microActividades.filter(m => m.estado === 'Finalizado').length} finalizadas
-              </span>
-              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                {actividad.microActividades.filter(m => m.estado === 'Desarrollo').length} en desarrollo
-              </span>
-              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                {actividad.microActividades.filter(m => m.estado === 'Iniciado').length} iniciadas
-              </span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

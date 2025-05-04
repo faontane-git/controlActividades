@@ -4,168 +4,114 @@ import NavBar from '../NavBar/Navbar';
 import Actividades from './Actividades';
 import Novedades from './Novedades';
 import Microactividades from './Microactividades';
+import Swal from 'sweetalert2';
 
 const DetalleProyecto = () => {
-  // Estados posibles para microactividades
   const ESTADOS_MICROACTIVIDAD = {
     INICIADO: 'Iniciado',
     DESARROLLO: 'Desarrollo',
     FINALIZADO: 'Finalizado'
   };
+
   const { id } = useParams();
   const navigate = useNavigate();
   const [proyecto, setProyecto] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [actividades, setActividades] = useState([]); // O tu estado inicial
   const [actividadSeleccionada, setActividadSeleccionada] = useState(null);
-  const [mostrarFormularioMicroactividad, setMostrarFormularioMicroactividad] = useState(false);
-  const [nuevaMicroactividad, setNuevaMicroactividad] = useState({
-    nombre: '',
-    descripcion: '',
-    estado: ESTADOS_MICROACTIVIDAD.INICIADO // Estado por defecto
-  });
-  // Datos mock (en un proyecto real sería una llamada API)
-  useEffect(() => {
-    const proyectos = [
-      {
-        id: 1,
-        nombre: 'Sitio Web Corporativo',
-        descripcion: 'Desarrollo del sitio web principal',
-        actividades: [
-          {
-            id: 1,
-            nombre: 'Diseño de interfaz',
-            descripcion: 'Crear el diseño UI/UX del sitio',
-            fechaInicio: '2023-01-10',
-            fechaFin: '2023-01-20',
-            horasEstimadas: 15,
-            microActividades: [
-              {
-                id: 1,
-                nombre: 'Reunión con cliente',
-                descripcion: 'Definir requerimientos',
-                horas: 2,
-                estado: ESTADOS_MICROACTIVIDAD.FINALIZADO
-              },
-              {
-                id: 2,
-                nombre: 'Crear wireframes',
-                descripcion: 'Diseñar flujo de navegación',
-                horas: 5,
-                estado: ESTADOS_MICROACTIVIDAD.DESARROLLO
-              },
-              {
-                id: 3,
-                nombre: 'Validar con equipo',
-                descripcion: 'Revisión técnica del diseño',
-                horas: 3,
-                estado: ESTADOS_MICROACTIVIDAD.INICIADO
-              }
-            ]
-          },
-          {
-            id: 2,
-            nombre: 'Desarrollo frontend',
-            descripcion: 'Implementación de componentes',
-            fechaInicio: '2023-01-21',
-            fechaFin: '2023-02-10',
-            horasEstimadas: 40,
-            microActividades: [
-              {
-                id: 4,
-                nombre: 'Configurar proyecto',
-                descripcion: 'Inicializar repositorio y dependencias',
-                horas: 4,
-                estado: ESTADOS_MICROACTIVIDAD.INICIADO
-              }
-            ]
-          }
-        ],
-        novedades: [
-          {
-            id: 1,
-            tipo: 'Error',
-            descripcion: 'Problema con el login en dispositivos móviles',
-            fecha: '2023-01-15',
-            archivos: []
-          }
-        ]
-      }
-    ];
 
-    const proyectoData = proyectos.find(p => p.id === parseInt(id));
-    setProyecto(proyectoData);
-    setLoading(false);
+  useEffect(() => {
+    const fetchProyectoConDatos = async () => {
+      try {
+        const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+        const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+        const res = await fetch(
+          `${supabaseUrl}/rest/v1/proyectos?id=eq.${id}&select=*,actividades(*,microactividades(*)),novedades(*)`,
+          {
+            headers: {
+              apikey: supabaseKey,
+              Authorization: `Bearer ${supabaseKey}`
+            }
+          }
+        );
+
+        const data = await res.json();
+        if (data.length > 0) {
+          const proyectoData = data[0];
+          setProyecto({
+            ...proyectoData,
+            actividades: proyectoData.actividades ?? [],
+            novedades: proyectoData.novedades ?? []
+          });
+        } else {
+          setProyecto(null);
+        }
+      } catch (error) {
+        console.error("Error al cargar el proyecto:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProyectoConDatos();
   }, [id]);
-
-  useEffect(() => {
-    if (proyecto && actividadSeleccionada) {
-      const nuevaActividad = proyecto.actividades.find(a => a.id === actividadSeleccionada.id);
-      if (nuevaActividad) {
-        setActividadSeleccionada(nuevaActividad); // 🔄 Actualiza el objeto seleccionado
-      }
-    }
-  }, [proyecto, actividadSeleccionada]);
-
-
 
   const handleAddActividad = (nuevaActividad) => {
     setProyecto(prev => ({
       ...prev,
-      actividades: [...prev.actividades, nuevaActividad]
+      actividades: [...(prev.actividades ?? []), nuevaActividad]
     }));
   };
 
   const handleAddNovedad = (nuevaNovedad) => {
     setProyecto(prev => ({
       ...prev,
-      novedades: [...prev.novedades, nuevaNovedad]
+      novedades: [...(prev.novedades ?? []), nuevaNovedad]
     }));
   };
 
-  // Función para cambiar el estado de una microactividad
   const cambiarEstadoMicroactividad = (actividadId, microactividadId, nuevoEstado) => {
     setProyecto(prev => {
-      const actividadesActualizadas = prev.actividades.map(actividad => {
+      const actividadesActualizadas = (prev.actividades ?? []).map(actividad => {
         if (actividad.id === actividadId) {
-          const microActividadesActualizadas = actividad.microActividades.map(micro => {
-            if (micro.id === microactividadId) {
-              return { ...micro, estado: nuevoEstado };
+          const microActualizadas = (actividad.microactividades ?? []).map(m => {
+            if (m.id === microactividadId) {
+              return { ...m, estado: nuevoEstado };
             }
-            return micro;
+            return m;
           });
-          return { ...actividad, microActividades: microActividadesActualizadas };
+          return { ...actividad, microactividades: microActualizadas };
         }
         return actividad;
       });
+
       return { ...prev, actividades: actividadesActualizadas };
     });
   };
 
-  // Función para seleccionar una actividad
   const seleccionarActividad = (actividad) => {
     setActividadSeleccionada(actividad);
   };
 
-  // Función para cerrar el panel de microactividades
   const cerrarPanelMicroactividades = () => {
     setActividadSeleccionada(null);
   };
 
   const agregarMicroactividad = (actividadId, microactividad) => {
     setProyecto(prev => {
-      const actividadesActualizadas = prev.actividades.map(actividad => {
+      const actividadesActualizadas = (prev.actividades ?? []).map(actividad => {
         if (actividad.id === actividadId) {
           return {
             ...actividad,
-            microActividades: [
+            microactividades: [
               {
                 id: Date.now(),
                 nombre: microactividad.nombre,
                 descripcion: microactividad.descripcion,
+                horas: microactividad.horas,
                 estado: ESTADOS_MICROACTIVIDAD.INICIADO
               },
-              ...(actividad.microActividades || [])
+              ...(actividad.microactividades ?? [])
             ]
           };
         }
@@ -174,15 +120,49 @@ const DetalleProyecto = () => {
 
       return { ...prev, actividades: actividadesActualizadas };
     });
-
-    setMostrarFormularioMicroactividad(false);
-    setNuevaMicroactividad({
-      nombre: '',
-      descripcion: '',
-      estado: ESTADOS_MICROACTIVIDAD.INICIADO
-    });
   };
 
+  const handleDeleteNovedad = async (id) => {
+    const confirm = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6'
+    });
+
+    if (confirm.isConfirmed) {
+      try {
+        const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+        const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+        const response = await fetch(`${supabaseUrl}/rest/v1/novedades?id=eq.${id}`, {
+          method: 'DELETE',
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`
+          }
+        });
+
+        if (response.ok) {
+          setProyecto(prev => ({
+            ...prev,
+            novedades: prev.novedades.filter(n => n.id !== id)
+          }));
+
+          Swal.fire('Eliminado', 'La novedad fue eliminada correctamente.', 'success');
+        } else {
+          Swal.fire('Error', 'Hubo un problema al eliminar la novedad.', 'error');
+        }
+      } catch (error) {
+        console.error('❌ Error en handleDeleteNovedad:', error);
+        Swal.fire('Error', 'No se pudo completar la operación.', 'error');
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -195,8 +175,8 @@ const DetalleProyecto = () => {
   if (!proyecto) {
     return (
       <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded max-w-md mx-auto mt-8">
-        <strong>No encontrado: </strong>
-        <span>El proyecto solicitado no existe.</span>
+        <strong>No encontrado:</strong>
+        <span> El proyecto solicitado no existe.</span>
       </div>
     );
   }
@@ -221,20 +201,21 @@ const DetalleProyecto = () => {
           <p className="text-gray-600">{proyecto.descripcion}</p>
         </div>
 
-        {/* Sección de Actividades */}
-        <Actividades
-          actividades={proyecto.actividades}
-          onAddActividad={handleAddActividad}
-          onSelectActividad={seleccionarActividad}
-        />
+        {/* ✅ Asegurarse que actividades existe antes de renderizar */}
+        {proyecto.actividades && (
+          <Actividades
+            actividades={proyecto.actividades}
+            onAddActividad={handleAddActividad}
+            onSelectActividad={seleccionarActividad}
+          />
+        )}
 
-        {/* Sección de Novedades */}
         <Novedades
           novedades={proyecto.novedades}
           onAddNovedad={handleAddNovedad}
+          onDeleteNovedad={handleDeleteNovedad}
         />
 
-        {/* Panel de Microactividades (aparece cuando se selecciona una actividad) */}
         {actividadSeleccionada && (
           <Microactividades
             actividadSeleccionada={actividadSeleccionada}
@@ -243,7 +224,6 @@ const DetalleProyecto = () => {
             onAgregarMicroactividad={agregarMicroactividad}
           />
         )}
-
       </div>
     </div>
   );

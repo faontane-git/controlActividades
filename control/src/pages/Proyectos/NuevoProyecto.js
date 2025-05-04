@@ -167,6 +167,7 @@ const SubmitButton = styled.button`
   }
 `;
 
+
 const NewProject = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -186,72 +187,84 @@ const NewProject = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-
-    // Limpiar errores al escribir
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: ''
-      });
-    }
+    setFormData({ ...formData, [name]: value });
+    if (errors[name]) setErrors({ ...errors, [name]: '' });
   };
 
   const validateForm = () => {
     let valid = true;
     const newErrors = { ...errors };
-
     if (!formData.nombre.trim()) {
       newErrors.nombre = 'El nombre del proyecto es requerido';
       valid = false;
     }
-
     if (!formData.fechaInicio) {
       newErrors.fechaInicio = 'La fecha de inicio es requerida';
       valid = false;
     }
-
     if (!formData.fechaFin) {
       newErrors.fechaFin = 'La fecha de fin es requerida';
       valid = false;
     } else if (formData.fechaInicio && formData.fechaFin < formData.fechaInicio) {
-      newErrors.fechaFin = 'La fecha de fin no puede ser anterior a la fecha de inicio';
+      newErrors.fechaFin = 'La fecha de fin no puede ser anterior a la de inicio';
       valid = false;
     }
-
     setErrors(newErrors);
     return valid;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (validateForm()) {
-      // Aquí iría la lógica para enviar el formulario al backend
-      console.log('Formulario válido:', formData);
-      
-      // Simulación de envío exitoso
-      setTimeout(() => {
+
+    if (!validateForm()) return;
+
+    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+    const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+    const proyecto = {
+      nombre: formData.nombre,
+      descripcion: formData.descripcion,
+      fechainicio: formData.fechaInicio,
+      fechafin: formData.fechaFin,
+      estado: 'Planificado', // o el estado inicial que desees
+      progreso: 0, // puedes ajustarlo si es necesario
+      fecha_creacion: new Date().toISOString(),
+      actualizado_en: new Date().toISOString()
+    };
+
+    try {
+      const response = await fetch(`${supabaseUrl}/rest/v1/proyectos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          Prefer: 'return=representation'
+        },
+        body: JSON.stringify(proyecto)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log('✅ Proyecto guardado:', data);
         navigate('/proyectos');
-      }, 1000);
+      } else {
+        console.error('❌ Error al guardar:', data);
+      }
+    } catch (err) {
+      console.error('❌ Error en el fetch:', err);
     }
   };
 
+
   return (
     <Container>
-      <NavBarContainer>
-        <NavBar />
-      </NavBarContainer>
-
+      <NavBarContainer><NavBar /></NavBarContainer>
       <ContentContainer>
         <Header>
           <Title>Crear Nuevo Proyecto</Title>
-          <BackButton onClick={() => navigate('/proyectos')}>
-            <FaArrowLeft /> Volver
-          </BackButton>
+          <BackButton onClick={() => navigate('/proyectos')}><FaArrowLeft /> Volver</BackButton>
         </Header>
 
         <FormContainer>
@@ -259,59 +272,31 @@ const NewProject = () => {
             <FormGroup>
               <Label>Nombre del Proyecto *</Label>
               <InputContainer>
-                <InputIcon>
-                  <FaAlignLeft />
-                </InputIcon>
-                <Input
-                  type="text"
-                  name="nombre"
-                  placeholder="Ej: Sitio Web Corporativo"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                />
+                <InputIcon><FaAlignLeft /></InputIcon>
+                <Input type="text" name="nombre" value={formData.nombre} onChange={handleChange} />
               </InputContainer>
               {errors.nombre && <ErrorMessage>{errors.nombre}</ErrorMessage>}
             </FormGroup>
 
             <FormGroup>
               <Label>Descripción</Label>
-              <TextArea
-                name="descripcion"
-                placeholder="Describa los objetivos y características del proyecto..."
-                value={formData.descripcion}
-                onChange={handleChange}
-              />
+              <TextArea name="descripcion" value={formData.descripcion} onChange={handleChange} />
             </FormGroup>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
               <FormGroup>
                 <Label>Fecha de Inicio *</Label>
                 <InputContainer>
-                  <InputIcon>
-                    <FaCalendarAlt />
-                  </InputIcon>
-                  <Input
-                    type="date"
-                    name="fechaInicio"
-                    value={formData.fechaInicio}
-                    onChange={handleChange}
-                  />
+                  <InputIcon><FaCalendarAlt /></InputIcon>
+                  <Input type="date" name="fechaInicio" value={formData.fechaInicio} onChange={handleChange} />
                 </InputContainer>
                 {errors.fechaInicio && <ErrorMessage>{errors.fechaInicio}</ErrorMessage>}
               </FormGroup>
-
               <FormGroup>
                 <Label>Fecha de Fin *</Label>
                 <InputContainer>
-                  <InputIcon>
-                    <FaCalendarAlt />
-                  </InputIcon>
-                  <Input
-                    type="date"
-                    name="fechaFin"
-                    value={formData.fechaFin}
-                    onChange={handleChange}
-                  />
+                  <InputIcon><FaCalendarAlt /></InputIcon>
+                  <Input type="date" name="fechaFin" value={formData.fechaFin} onChange={handleChange} />
                 </InputContainer>
                 {errors.fechaFin && <ErrorMessage>{errors.fechaFin}</ErrorMessage>}
               </FormGroup>
@@ -321,36 +306,19 @@ const NewProject = () => {
               <FormGroup>
                 <Label>Cliente</Label>
                 <InputContainer>
-                  <Input
-                    type="text"
-                    name="cliente"
-                    placeholder="Nombre del cliente"
-                    value={formData.cliente}
-                    onChange={handleChange}
-                  />
+                  <Input type="text" name="cliente" value={formData.cliente} onChange={handleChange} />
                 </InputContainer>
               </FormGroup>
-
               <FormGroup>
                 <Label>Presupuesto</Label>
                 <InputContainer>
-                  <Input
-                    type="number"
-                    name="presupuesto"
-                    placeholder="Monto en dólares"
-                    value={formData.presupuesto}
-                    onChange={handleChange}
-                    min="0"
-                    step="0.01"
-                  />
+                  <Input type="number" name="presupuesto" min="0" step="0.01" value={formData.presupuesto} onChange={handleChange} />
                 </InputContainer>
               </FormGroup>
             </div>
 
             <FormGroup style={{ marginTop: '2rem' }}>
-              <SubmitButton type="submit">
-                <FaSave /> Guardar Proyecto
-              </SubmitButton>
+              <SubmitButton type="submit"><FaSave /> Guardar Proyecto</SubmitButton>
             </FormGroup>
           </form>
         </FormContainer>

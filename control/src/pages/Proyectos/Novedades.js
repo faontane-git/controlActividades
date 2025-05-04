@@ -1,56 +1,157 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const Novedades = ({ novedades, onAddNovedad }) => {
+const Novedades = ({ novedades, onAddNovedad, onDeleteNovedad }) => {
   const [showModal, setShowModal] = useState(false);
-  const [nuevaNovedad, setNuevaNovedad] = useState({
+  const [editandoNovedad, setEditandoNovedad] = useState(null);
+  const [form, setForm] = useState({
     tipo: 'Error',
     descripcion: '',
     fecha: new Date().toISOString().split('T')[0],
-    archivos: []
+    evidencia: null,
+    proyecto_id: null
   });
+  const [imagenAmpliada, setImagenAmpliada] = useState(null);
+
+  useEffect(() => {
+    console.log('📝 Novedades recibidas:', novedades);
+  }, [novedades]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setNuevaNovedad(prev => ({ ...prev, [name]: value }));
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const convertirACompressBase64 = (file, callback) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+
+    reader.onload = async () => {
+      const img = new Image();
+      img.src = reader.result;
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800; // o cualquier tamaño razonable
+        const scaleSize = MAX_WIDTH / img.width;
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scaleSize;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // exportar con calidad reducida
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6); // calidad 60%
+        callback(compressedBase64);
+      };
+    };
   };
 
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    setNuevaNovedad(prev => ({ ...prev, archivos: [...prev.archivos, ...files] }));
+    const file = e.target.files[0];
+    if (file) {
+      convertirACompressBase64(file, (base64) => {
+        setForm(prev => ({ ...prev, evidencia: base64 }));
+      });
+    }
   };
 
-  const removeFile = (index) => {
-    setNuevaNovedad(prev => ({
-      ...prev,
-      archivos: prev.archivos.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onAddNovedad({
-      ...nuevaNovedad,
-      id: Date.now(),
-      archivos: nuevaNovedad.archivos.map(file => ({
-        nombre: file.name,
-        tipo: file.type,
-        url: URL.createObjectURL(file)
-      }))
+  const handleEditar = (novedad) => {
+    setEditandoNovedad(novedad);
+    setForm({
+      tipo: novedad.tipo,
+      descripcion: novedad.descripcion,
+      fecha: novedad.fecha,
+      evidencia: null,
+      id: novedad.id,
+      proyecto_id: novedad.proyecto_id
     });
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
     setShowModal(false);
-    setNuevaNovedad({
+    setEditandoNovedad(null);
+    setForm({
       tipo: 'Error',
       descripcion: '',
       fecha: new Date().toISOString().split('T')[0],
-      archivos: []
+      evidencia: null,
+      proyecto_id: null
     });
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+    const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+    let evidenciaUrl = editandoNovedad?.evidencia || null;
+
+    if (form.evidencia instanceof File) {
+      const file = form.evidencia;
+      const filename = `${Date.now()}_${file.name}`;
+      const uploadRes = await fetch(`${supabaseUrl}/storage/v1/object/novedades/${filename}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${supabaseKey}`,
+          apikey: supabaseKey
+        },
+        body: file
+      });
+
+      if (uploadRes.ok) {
+        evidenciaUrl = `${supabaseUrl}/storage/v1/object/public/novedades/${filename}`;
+      }
+    }
+
+    const payload = {
+      tipo: form.tipo,
+      descripcion: form.descripcion,
+      fecha: form.fecha,
+      evidencia: form.evidencia, // <-- asegúrate de esto
+      proyecto_id: form.proyecto_id
+    };
+
+    let response, data;
+    if (editandoNovedad) {
+      response = await fetch(`${supabaseUrl}/rest/v1/novedades?id=eq.${form.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          Prefer: 'return=representation'
+        },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      response = await fetch(`${supabaseUrl}/rest/v1/novedades`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          Prefer: 'return=representation'
+        },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    data = await response.json();
+    if (response.ok) {
+      onAddNovedad(data[0]);
+    }
+
+    closeModal();
+  };
+
   const getTipoColor = (tipo) => {
-    switch(tipo) {
+    switch (tipo) {
       case 'Error': return 'bg-red-100 text-red-800';
       case 'Fix': return 'bg-green-100 text-green-800';
       case 'Mejora': return 'bg-blue-100 text-blue-800';
+      case 'Avance': return 'bg-indigo-100 text-indigo-800';
+      case 'Comentario': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -70,154 +171,111 @@ const Novedades = ({ novedades, onAddNovedad }) => {
         </button>
       </div>
 
-      {novedades.length > 0 ? (
+      {Array.isArray(novedades) && novedades.length > 0 ? (
         <div className="space-y-4">
-          {novedades.slice(0, 3).map((novedad) => (
-            <div key={novedad.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+          {novedades.map((novedad) => (
+            <div key={novedad.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow relative">
               <div className="flex items-start">
                 <span className={`text-xs px-2 py-1 rounded-full ${getTipoColor(novedad.tipo)} font-medium mr-3`}>
                   {novedad.tipo}
                 </span>
                 <div className="flex-1">
                   <p className="text-gray-600">{novedad.descripcion}</p>
-                  <p className="text-xs text-gray-400 mt-2">
-                    <svg className="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    {novedad.fecha}
-                  </p>
-                  {novedad.archivos.length > 0 && (
+                  <p className="text-xs text-gray-400 mt-2">📅 {novedad.fecha}</p>
+                  {novedad.evidencia && (
                     <div className="mt-2">
-                      <span className="text-xs text-gray-500">
-                        <svg className="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
-                        {novedad.archivos.length} archivo(s) adjunto(s)
-                      </span>
+                      {novedad.evidencia.endsWith('.mp4') ? (
+                        <video className="mt-1 max-w-xs rounded" controls>
+                          <source src={novedad.evidencia} type="video/mp4" />
+                        </video>
+                      ) : (
+                        <img
+                          src={novedad.evidencia}
+                          alt="Evidencia"
+                          className="mt-1 max-w-xs rounded cursor-pointer"
+                          onClick={() => setImagenAmpliada(novedad.evidencia)}
+                        />
+                      )}
                     </div>
                   )}
                 </div>
+              </div>
+              <div className="absolute top-2 right-2 flex gap-2">
+                <button
+                  onClick={() => handleEditar(novedad)}
+                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  title="Editar"
+                >
+                  ✏️
+                </button>
+                <button
+                  onClick={() => onDeleteNovedad(novedad.id)}
+                  className="text-red-600 hover:text-red-800 text-sm"
+                  title="Eliminar"
+                >
+                  🗑️
+                </button>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="text-center py-6 text-gray-500">
-          <svg className="w-12 h-12 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p className="mt-2">No hay novedades registradas</p>
-        </div>
+        <div className="text-center py-6 text-gray-500">No hay novedades registradas</div>
       )}
 
-      {/* Modal para agregar novedad */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
             <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Nueva Novedad</h3>
-                <button 
-                  onClick={() => setShowModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
               <form onSubmit={handleSubmit}>
-                <div className="mb-4">
-                  <label className="block text-gray-700 mb-2">Tipo de Novedad</label>
-                  <select
-                    name="tipo"
-                    value={nuevaNovedad.tipo}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded"
-                    required
-                  >
-                    <option value="Error">Error</option>
-                    <option value="Fix">Fix</option>
-                    <option value="Mejora">Mejora</option>
-                    <option value="Observación">Observación</option>
-                  </select>
-                </div>
+                <h3 className="text-lg font-bold mb-4">{editandoNovedad ? 'Editar Novedad' : 'Nueva Novedad'}</h3>
 
-                <div className="mb-4">
-                  <label className="block text-gray-700 mb-2">Descripción</label>
-                  <textarea
-                    name="descripcion"
-                    value={nuevaNovedad.descripcion}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded"
-                    rows="3"
-                    required
-                  />
-                </div>
+                <label className="block mb-2 text-sm font-medium text-gray-700">Tipo</label>
+                <select
+                  name="tipo"
+                  value={form.tipo}
+                  onChange={handleChange}
+                  className="w-full border rounded p-2 mb-4"
+                  required
+                >
+                  <option value="Error">Error</option>
+                  <option value="Fix">Fix</option>
+                  <option value="Mejora">Mejora</option>
+                  <option value="Avance">Avance</option>
+                  <option value="Comentario">Comentario</option>
+                </select>
 
-                <div className="mb-4">
-                  <label className="block text-gray-700 mb-2">Fecha</label>
-                  <input
-                    type="date"
-                    name="fecha"
-                    value={nuevaNovedad.fecha}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded"
-                    required
-                  />
-                </div>
+                <label className="block mb-2 text-sm font-medium text-gray-700">Descripción</label>
+                <textarea
+                  name="descripcion"
+                  value={form.descripcion}
+                  onChange={handleChange}
+                  className="w-full border rounded p-2 mb-4"
+                  required
+                />
 
-                <div className="mb-4">
-                  <label className="block text-gray-700 mb-2">Evidencia (Fotos/Videos)</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                    <input
-                      type="file"
-                      id="file-upload"
-                      multiple
-                      accept="image/*,video/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                    <label
-                      htmlFor="file-upload"
-                      className="cursor-pointer flex flex-col items-center justify-center"
-                    >
-                      <svg className="w-12 h-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                      <span className="text-blue-600 font-medium">Seleccionar archivos</span>
-                      <span className="text-xs text-gray-500">Formatos soportados: JPG, PNG, MP4</span>
-                    </label>
-                  </div>
+                <label className="block mb-2 text-sm font-medium text-gray-700">Fecha</label>
+                <input
+                  type="date"
+                  name="fecha"
+                  value={form.fecha}
+                  onChange={handleChange}
+                  className="w-full border rounded p-2 mb-4"
+                  required
+                />
 
-                  {nuevaNovedad.archivos.length > 0 && (
-                    <div className="mt-2">
-                      <h4 className="text-sm font-medium text-gray-700 mb-1">Archivos seleccionados:</h4>
-                      <ul className="space-y-1">
-                        {nuevaNovedad.archivos.map((file, index) => (
-                          <li key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                            <span className="text-sm truncate">{file.name}</span>
-                            <button
-                              type="button"
-                              onClick={() => removeFile(index)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
+                <label className="block mb-2 text-sm font-medium text-gray-700">Evidencia</label>
+                <input
+                  type="file"
+                  accept="image/*,video/*"
+                  onChange={handleFileChange}
+                  className="w-full border rounded p-2 mb-4"
+                />
 
-                <div className="flex justify-end space-x-3">
+                <div className="flex justify-end space-x-2">
                   <button
                     type="button"
-                    onClick={() => setShowModal(false)}
+                    onClick={closeModal}
                     className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
                   >
                     Cancelar
@@ -226,7 +284,7 @@ const Novedades = ({ novedades, onAddNovedad }) => {
                     type="submit"
                     className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
                   >
-                    Guardar Novedad
+                    {editandoNovedad ? 'Actualizar' : 'Guardar'}
                   </button>
                 </div>
               </form>
@@ -234,6 +292,21 @@ const Novedades = ({ novedades, onAddNovedad }) => {
           </div>
         </div>
       )}
+
+      {imagenAmpliada && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="relative">
+            <button
+              onClick={() => setImagenAmpliada(null)}
+              className="absolute top-0 right-0 text-white p-2 text-xl"
+            >
+              ✖
+            </button>
+            <img src={imagenAmpliada} alt="Vista ampliada" className="max-h-[90vh] max-w-[90vw] rounded shadow-lg" />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
