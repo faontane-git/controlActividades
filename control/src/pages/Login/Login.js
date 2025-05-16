@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiUser, FiLock, FiArrowRight } from 'react-icons/fi';
-import logo from '../../recursos/logo.png'
+import { FiUser, FiLock, FiArrowRight, FiPlusCircle } from 'react-icons/fi';
+import logo from '../../recursos/logo.png';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -18,7 +18,7 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 to-blue-900 relative overflow-hidden">
-      {/* Efecto de partículas de fondo */}
+      {/* Efecto de partículas de fondo (se mantiene igual) */}
       <div className="absolute inset-0 opacity-10">
         {[...Array(50)].map((_, i) => (
           <div 
@@ -37,7 +37,7 @@ const LoginPage = () => {
       <div className="relative bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-md border border-white/20">
         <div className="mb-10 text-center">
           <img 
-            src={logo} // Reemplaza con tu logo
+            src={logo}
             alt="Logo FSoftSolutions"
             className="w-32 mx-auto mb-6"
           />
@@ -47,6 +47,7 @@ const LoginPage = () => {
 
         {/* Formulario */}
         <div className="space-y-6">
+          {/* Campos de usuario y contraseña (se mantienen igual) */}
           <div>
             <label className="block text-white/80 text-sm mb-2">Usuario</label>
             <div className="relative">
@@ -75,6 +76,7 @@ const LoginPage = () => {
             </div>
           </div>
 
+          {/* Botón de Login */}
           <button
             onClick={handleLogin}
             className="w-full flex items-center justify-center space-x-2 bg-white text-indigo-900 py-4 rounded-lg font-semibold hover:bg-opacity-90 transition-all"
@@ -83,15 +85,28 @@ const LoginPage = () => {
             <FiArrowRight className="text-xl" />
           </button>
 
-          <div className="text-center">
+          {/* Sección adicional con las opciones */}
+          <div className="flex flex-col items-center space-y-4 pt-2">
+            {/* Opción "Olvidé contraseña" */}
             <a href="#" className="text-white/70 text-sm hover:text-white transition-colors">
               ¿Olvidaste tu contraseña?
             </a>
+            
+            {/* Opción "Crear cuenta" (NUEVO) */}
+            <div className="text-center text-sm">
+              <span className="text-white/70">¿No tienes una cuenta? </span>
+              <button 
+                onClick={() => navigate('/register')}
+                className="text-white font-medium hover:underline transition-colors focus:outline-none"
+              >
+                Regístrate aquí
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Estilos de animación */}
+      {/* Estilos de animación (se mantiene igual) */}
       <style jsx>{`
         @keyframes float {
           0%, 100% { transform: translateY(0); }

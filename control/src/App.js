@@ -18,6 +18,7 @@ import Proyectos from './pages/Proyectos';
 import DetalleProyecto from './pages/Proyectos/DetalleProyecto';
 import SoftwareBoard from './pages/Proyectos';
 import NewProject from './pages/Proyectos/NuevoProyecto';
+import RegisterPage from './pages/Login/RegisterPage';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} /> 
         <Route path="/main" element={<MainPage />} />
         <Route path="/actividades" element={<HomePage />} />
         <Route path="/opciones" element={<OptionsPage />} />
