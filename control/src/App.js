@@ -19,6 +19,8 @@ import DetalleProyecto from './pages/Proyectos/DetalleProyecto';
 import SoftwareBoard from './pages/Proyectos';
 import NewProject from './pages/Proyectos/NuevoProyecto';
 import RegisterPage from './pages/Login/RegisterPage';
+import Personal from './pages/Personal/Personal';
+import BolsaDeValores from './pages/Bolsa';
 
 function App() {
   return (
@@ -26,22 +28,26 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} /> 
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/main" element={<MainPage />} />
         <Route path="/actividades" element={<HomePage />} />
         <Route path="/opciones" element={<OptionsPage />} />
-        
+
+        {/* Rutas de Personal */}
+        <Route path="/personal" element={<Personal/>} />
+<Route path="/bolsa" element={<BolsaDeValores />} />
+
         {/* Rutas de Proyectos */}
         <Route path="/proyectos" element={<Proyectos />} />
         <Route path="/proyectos/nuevo" element={<NewProject />} />
         <Route path="/proyectos/:id" element={<DetalleProyecto />} />
-        
+
         {/* Rutas de Facturación */}
         <Route path="/facturador" element={<FacturacionPage />} />
         <Route path="/factura" element={<GenerarFactura />} />
         <Route path="/productos" element={<CrearProductos />} />
         <Route path="/historico" element={<VerHistorico />} />
-        
+
         {/* Otras rutas */}
         <Route path="/trabajo" element={<SoftwareBoard />} />
         <Route path="/perfil" element={<PerfilPage />} />

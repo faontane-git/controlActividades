@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../../src/recursos/logo.png';
-import { 
-  FiLogOut, 
-  FiUser, 
-  FiChevronDown, 
-  FiMenu, 
-  FiX, 
-  FiHome, 
-  FiSettings, 
-  FiActivity, FiAward, 
+import {
+  FiLogOut,
+  FiUser,
+  FiChevronDown,
+  FiMenu,
+  FiX,
+  FiHome,
+  FiSettings,
+  FiActivity, 
+  FiAward,
   FiFolder,
-  FiFileText 
+  FiFileText,
+  FiUsers,
+  FiTrendingUp // Nuevo ícono para Bolsa
 } from 'react-icons/fi';
 
 const NavBar = () => {
@@ -26,29 +29,27 @@ const NavBar = () => {
 
   return (
     <>
-      {/* Barra de navegación superior */}
+      {/* Barra de navegación superior (sin cambios) */}
       <nav className="fixed top-0 left-0 w-full flex items-center h-20 bg-white/95 backdrop-blur-md border-b border-gray-100 z-50 shadow-sm">
         <div className="w-full max-w-7xl mx-auto flex items-center justify-between px-2">
-          {/* Contenedor de logo y botón de menú */}
-          <div className="flex items-center gap-1">
-            {/* Botón para abrir el menú lateral */}
-            <button onClick={() => setSidebarOpen(true)} className="text-gray-700 text-2xl ml-0">
+          <div className="flex items-center gap-1 pl-2">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="text-gray-700 text-2xl ml-0 mr-3"
+            >
               <FiMenu />
             </button>
-
-            {/* Logo alineado completamente a la izquierda */}
-            <img 
-              src={logo} 
-              alt="Logo" 
-              className="h-10 w-auto transition-opacity hover:opacity-80 cursor-pointer ml-0"
+            <img
+              src={logo}
+              alt="Logo"
+              className="h-10 w-auto transition-opacity hover:opacity-80 cursor-pointer"
               onClick={() => navigate('/main')}
             />
           </div>
 
-          {/* Menú desplegable de usuario */}
           <div className="relative">
-            <button 
-              onClick={() => setMenuOpen(!menuOpen)} 
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
               className="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm hover:shadow-md transition"
             >
               <FiUser className="text-gray-700" size={20} />
@@ -67,7 +68,7 @@ const NavBar = () => {
         </div>
       </nav>
 
-      {/* Menú lateral */}
+      {/* Menú lateral con nueva opción */}
       <div className={`fixed top-0 left-0 h-full w-64 bg-white shadow-md transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform z-50`}>
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-lg font-semibold">Menú</h2>
@@ -75,10 +76,23 @@ const NavBar = () => {
             <FiX />
           </button>
         </div>
-        <nav className="p-4">
+        <nav className="p-4 space-y-1">
           <button onClick={() => navigate('/main')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiHome className="mr-3" /> Inicio
           </button>
+          
+          <button onClick={() => navigate('/personal')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <FiUsers className="mr-3" /> Administrar Personal
+          </button>
+
+          {/* Nueva opción de Bolsa de Valores */}
+          <button 
+            onClick={() => navigate('/bolsa')} 
+            className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg"
+          >
+            <FiTrendingUp className="mr-3" /> Bolsa de Valores
+          </button>
+
           <button onClick={() => navigate('/proyectos')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiFolder className="mr-3" /> Proyectos
           </button>
