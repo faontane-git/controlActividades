@@ -14,7 +14,7 @@ const LoginPage = () => {
 
     try {
       const response = await fetch(
-        `${supabaseUrl}/rest/v1/usuarios?email=eq.${encodeURIComponent(username)}&password=eq.${encodeURIComponent(password)}`,
+        `${supabaseUrl}/rest/v1/usuarios?usuario=eq.${encodeURIComponent(username)}&password=eq.${encodeURIComponent(password)}`,
         {
           headers: {
             apikey: supabaseKey,

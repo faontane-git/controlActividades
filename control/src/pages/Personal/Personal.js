@@ -4,54 +4,44 @@ import NavBar from '../NavBar/Navbar';
 import EmpleadoForm from './EmpleadoForm';
 
 const Personal = () => {
-  // Estado para los empleados y filtros
   const [empleados, setEmpleados] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentEmpleado, setCurrentEmpleado] = useState(null);
 
-  // Datos de ejemplo (en producción vendrían de una API)
   useEffect(() => {
-    const dummyData = [
-      {
-        id: 1,
-        nombres: 'Ana',
-        apellidos: 'López Martínez',
-        email: 'ana@empresa.com',
-        telefono: '555-0101',
-        usuario: 'ana.lopez',
-        cedula: '0912345678'
-      },
-      {
-        id: 2,
-        nombres: 'Carlos',
-        apellidos: 'Ruiz Fernández',
-        email: 'carlos@empresa.com',
-        telefono: '555-0102',
-        usuario: 'carlos.ruiz',
-        cedula: '0923456789'
-      },
-      {
-        id: 3,
-        nombres: 'Marta',
-        apellidos: 'García Sánchez',
-        email: 'marta@empresa.com',
-        telefono: '555-0103',
-        usuario: 'marta.garcia',
-        cedula: '0934567890'
+    const fetchEmpleados = async () => {
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+      try {
+        const response = await fetch(`${supabaseUrl}/rest/v1/empleados?select=id,nombres,apellidos,cedula,email,telefono,usuario,usuario_id,creado_en`, {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al obtener empleados');
+        }
+
+        const data = await response.json();
+        setEmpleados(data);
+      } catch (error) {
+        console.error('Fetch error:', error);
       }
-    ];
-    setEmpleados(dummyData);
+    };
+
+    fetchEmpleados();
   }, []);
 
-
-  // Filtrar empleados
   const filteredEmpleados = empleados.filter(emp =>
     `${emp.nombres} ${emp.apellidos}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     emp.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Funciones CRUD
   const handleDelete = (id) => {
     setEmpleados(empleados.filter(emp => emp.id !== id));
   };
@@ -64,8 +54,6 @@ const Personal = () => {
   return (
     <div className="container mx-auto px-4 py-8 mt-20">
       <NavBar />
-
-      {/* Header y Botón Añadir */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Administrar Personal</h1>
         <button
@@ -75,8 +63,6 @@ const Personal = () => {
           <FiPlus className="mr-2" /> Añadir Empleado
         </button>
       </div>
-
-      {/* Barra de Búsqueda */}
       <div className="relative mb-6">
         <FiSearch className="absolute left-3 top-3 text-gray-400" />
         <input
@@ -87,8 +73,6 @@ const Personal = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
-
-      {/* Tabla de Empleados */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -98,6 +82,7 @@ const Personal = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cédula</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Creado</th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
             </tr>
           </thead>
@@ -114,15 +99,9 @@ const Personal = () => {
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {empleado.apellidos}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {empleado.usuario}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {empleado.cedula}
-                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{empleado.apellidos}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{empleado.usuario}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{empleado.cedula}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-500 flex items-center">
                     <FiMail className="mr-2" /> {empleado.email}
@@ -130,6 +109,9 @@ const Personal = () => {
                   <div className="text-sm text-gray-500 flex items-center mt-1">
                     <FiPhone className="mr-2" /> {empleado.telefono}
                   </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {new Date(empleado.creado_en).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex justify-end space-x-3">
@@ -152,23 +134,19 @@ const Personal = () => {
               </tr>
             ))}
           </tbody>
-
         </table>
       </div>
 
-      {/* Modal (formulario) - Lo implementaremos después */}
       {isModalOpen && (
         <EmpleadoForm
           empleado={currentEmpleado}
           onClose={() => setIsModalOpen(false)}
           onSave={(empleadoActualizado) => {
             if (currentEmpleado) {
-              // Editar
               setEmpleados(empleados.map(emp =>
                 emp.id === currentEmpleado.id ? empleadoActualizado : emp
               ));
             } else {
-              // Crear
               setEmpleados([...empleados, { ...empleadoActualizado, id: Date.now() }]);
             }
             setIsModalOpen(false);

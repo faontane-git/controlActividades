@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiUser, FiBriefcase, FiLayers, FiMail, FiPhone } from 'react-icons/fi';
 
-const EmpleadoForm = ({ empleado, onClose, onSave }) => {
+const EmpleadoForm = ({ empleado, onClose }) => {
   const [formData, setFormData] = useState({
     nombres: '',
     apellidos: '',
@@ -12,6 +12,7 @@ const EmpleadoForm = ({ empleado, onClose, onSave }) => {
   });
 
   const [cedulaError, setCedulaError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (empleado) {
@@ -21,7 +22,6 @@ const EmpleadoForm = ({ empleado, onClose, onSave }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     if (name === 'cedula') {
       const numericValue = value.replace(/\D/g, '');
       setFormData(prev => ({ ...prev, [name]: numericValue }));
@@ -29,6 +29,76 @@ const EmpleadoForm = ({ empleado, onClose, onSave }) => {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
+
+  const guardarEmpleadoYUsuario = async () => {
+    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+    const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+    try {
+      setLoading(true);
+
+      // 1. Insertar empleado
+      const empleadoRes = await fetch(`${supabaseUrl}/rest/v1/empleados`, {
+        method: 'POST',
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation'
+        },
+        body: JSON.stringify({
+          nombres: formData.nombres,
+          apellidos: formData.apellidos,
+          usuario: formData.usuario, // ✅ importante
+          cedula: formData.cedula,
+          email: formData.email,
+          telefono: formData.telefono
+        })
+      });
+
+      if (!empleadoRes.ok) {
+        const error = await empleadoRes.json();
+        console.error('Error al guardar empleado:', error);
+        throw new Error('Error al guardar empleado');
+      }
+
+      // 2. Insertar usuario
+      const usuarioRes = await fetch(`${supabaseUrl}/rest/v1/usuarios`, {
+        method: 'POST',
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal'
+        },
+        body: JSON.stringify({
+          nombres: formData.nombres,
+          apellidos: formData.apellidos,
+          correo: formData.email,
+          usuario: formData.usuario,
+          password: formData.cedula,
+          rol: 'empleado',
+          activo: true,
+          admin: false
+        })
+      });
+
+      if (!usuarioRes.ok) {
+        const error = await usuarioRes.json();
+        console.error('Error al guardar usuario:', error);
+        throw new Error('Error al guardar usuario');
+      }
+
+      alert('Empleado y usuario guardados correctamente.');
+      onClose();
+    } catch (error) {
+      console.error(error);
+      alert('Error al guardar datos. Revisa la consola.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -40,7 +110,7 @@ const EmpleadoForm = ({ empleado, onClose, onSave }) => {
     }
 
     setCedulaError('');
-    onSave(formData); // La cédula funciona como contraseña
+    guardarEmpleadoYUsuario();
   };
 
   return (
@@ -113,15 +183,12 @@ const EmpleadoForm = ({ empleado, onClose, onSave }) => {
                 value={formData.cedula}
                 onChange={handleChange}
                 maxLength={10}
-                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:border-indigo-500 ${
-                  cedulaError ? 'border-red-500 focus:ring-red-500' : 'focus:ring-indigo-500'
-                }`}
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:border-indigo-500 ${cedulaError ? 'border-red-500 focus:ring-red-500' : 'focus:ring-indigo-500'
+                  }`}
                 required
               />
             </div>
-            {cedulaError && (
-              <p className="text-sm text-red-600 mt-1">{cedulaError}</p>
-            )}
+            {cedulaError && <p className="text-sm text-red-600 mt-1">{cedulaError}</p>}
           </div>
 
           <div>
@@ -158,14 +225,16 @@ const EmpleadoForm = ({ empleado, onClose, onSave }) => {
               type="button"
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              disabled={loading}
             >
               Cancelar
             </button>
             <button
               type="submit"
               className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              disabled={loading}
             >
-              {empleado ? 'Guardar Cambios' : 'Añadir Empleado'}
+              {loading ? 'Guardando...' : empleado ? 'Guardar Cambios' : 'Añadir Empleado'}
             </button>
           </div>
         </form>
