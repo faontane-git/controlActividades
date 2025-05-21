@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiUser, FiLock, FiArrowRight } from 'react-icons/fi';
-import logo from '../../recursos/logo.png';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { FiUser, FiLock, FiArrowRight } from "react-icons/fi";
+import { Alert } from "./Alert"; // Asegúrate de tener este componente
+import logo from "../../recursos/logo.png";
+import { useAuth } from "../../AuthContext";
 
 const LoginPage = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState("success");
+  const [alertMessage, setAlertMessage] = useState("");
+  const { setUser } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async () => {
@@ -19,7 +25,7 @@ const LoginPage = () => {
           headers: {
             apikey: supabaseKey,
             Authorization: `Bearer ${supabaseKey}`,
-            Accept: 'application/json'
+            Accept: "application/json"
           }
         }
       );
@@ -27,20 +33,30 @@ const LoginPage = () => {
       const data = await response.json();
 
       if (data.length > 0) {
-        // Usuario autenticado correctamente
-        navigate('/main');
+        console.log(data);
+        const user = data[0];
+        setUser(user);
+        setAlertType("success");
+        setAlertMessage(`¡Bienvenido, ${user.nombres} ${user.apellidos}!`); // Asume que tu API devuelve estos campos
+        setShowAlert(true);
+        setTimeout(() => navigate("/main"), 2000);
       } else {
-        alert('Credenciales incorrectas');
+        setAlertType("error");
+        setAlertMessage("Credenciales incorrectas");
+        setShowAlert(true);
       }
     } catch (error) {
-      console.error('Error al iniciar sesión:', error);
-      alert('Hubo un error al iniciar sesión');
+      console.error("Error al iniciar sesión:", error);
+      setAlertType("error");
+      setAlertMessage("Error de conexión con el servidor");
+      setShowAlert(true);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 to-blue-900 relative overflow-hidden">
-      <div className="absolute inset-0 opacity-10">
+    <div className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden">
+      {/* Efecto de partículas */}
+      <div className="absolute inset-0 opacity-20">
         {[...Array(50)].map((_, i) => (
           <div
             key={i}
@@ -48,77 +64,89 @@ const LoginPage = () => {
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              animation: `float ${Math.random() * 5 + 5}s infinite`
+              animation: `float ${Math.random() * 5 + 5}s infinite`,
             }}
           />
         ))}
       </div>
 
-      <div className="relative bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-md border border-white/20">
+      {/* Contenedor principal */}
+      <div className="relative bg-gray-900/80 backdrop-blur-lg rounded-2xl shadow-xl p-8 w-full max-w-md border border-indigo-500/30">
+        {/* Encabezado */}
         <div className="mb-10 text-center">
-          <img src={logo} alt="Logo FSoftSolutions" className="w-32 mx-auto mb-6" />
+          <img
+            src={logo}
+            alt="Logo"
+            className="w-32 mx-auto mb-6 filter brightness-0 invert"
+          />
           <h2 className="text-3xl font-bold text-white mb-2">Bienvenido</h2>
-          <p className="text-white/80">Ingresa tus credenciales para continuar</p>
+          <p className="text-gray-400">Ingresa tus credenciales</p>
         </div>
 
+        {/* Formulario */}
         <div className="space-y-6">
+          {/* Campo de usuario */}
           <div>
-            <label className="block text-white/80 text-sm mb-2">Usuario</label>
+            <label className="block text-gray-400 text-sm mb-2">Usuario</label>
             <div className="relative">
-              <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60" />
+              <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 transition-all"
-                placeholder="Correo electrónico"
+                className="w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 transition-all"
+                placeholder="Usuario"
               />
             </div>
           </div>
 
+          {/* Campo de contraseña */}
           <div>
-            <label className="block text-white/80 text-sm mb-2">Contraseña</label>
+            <label className="block text-gray-400 text-sm mb-2">Contraseña</label>
             <div className="relative">
-              <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60" />
+              <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 transition-all"
+                className="w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 transition-all"
                 placeholder="••••••••"
               />
             </div>
           </div>
 
+          {/* Botón de login */}
           <button
             onClick={handleLogin}
-            className="w-full flex items-center justify-center space-x-2 bg-white text-indigo-900 py-4 rounded-lg font-semibold hover:bg-opacity-90 transition-all"
+            className="w-full flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-lg font-semibold transition-all shadow-lg hover:shadow-indigo-500/20"
           >
             <span>Iniciar Sesión</span>
             <FiArrowRight className="text-xl" />
           </button>
-
-          <div className="flex flex-col items-center space-y-4 pt-2">
-            <a href="#" className="text-white/70 text-sm hover:text-white transition-colors">
-              ¿Olvidaste tu contraseña?
-            </a>
-            <div className="text-center text-sm">
-              <span className="text-white/70">¿No tienes una cuenta? </span>
-              <button
-                onClick={() => navigate('/register')}
-                className="text-white font-medium hover:underline transition-colors focus:outline-none"
-              >
-                Regístrate aquí
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
-      <style jsx>{`
+      {/* Componente de Alerta */}
+      {showAlert && (
+        <Alert
+          type={alertType}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
+
+      {/* Animaciones CSS */}
+      <style jsx global>{`
         @keyframes float {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-20px); }
+          50% { transform: translateY(-15px); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
         }
       `}</style>
     </div>

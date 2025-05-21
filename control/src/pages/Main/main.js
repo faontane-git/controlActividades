@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../NavBar/Navbar';
-import { 
-  FiSettings, FiBriefcase, FiDollarSign, FiActivity, 
+import {
+  FiSettings, FiBriefcase, FiDollarSign, FiActivity,
   FiUser, FiBell, FiChevronDown, FiTrendingUp,
   FiPieChart, FiCalendar, FiClock, FiUsers, FiFileText
 } from 'react-icons/fi';
 import { Bar, Pie, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, registerables } from 'chart.js';
+import { useAuth } from '../../AuthContext'; // Ajusta la ruta si es diferente
 
-// Registra los componentes necesarios de Chart.js
 ChartJS.register(...registerables);
+
+// Simula el rol desde localStorage u otro lugar
+const getUserRole = () => {
+  return localStorage.getItem('rol') || 'user'; // por defecto no es admin
+};
 
 const TaxCountdown = () => {
   const [daysLeft, setDaysLeft] = useState(0);
@@ -21,38 +26,22 @@ const TaxCountdown = () => {
       const today = new Date();
       const currentYear = today.getFullYear();
       const currentMonth = today.getMonth();
-      
-      // Fecha de declaración para el mes actual (día 20)
       const taxDateCurrentMonth = new Date(currentYear, currentMonth, 20);
-      
-      // Fecha de declaración para el próximo mes (por si ya pasó el día 20)
       const taxDateNextMonth = new Date(currentYear, currentMonth + 1, 20);
-      
-      // Determinar cuál fecha usar (la próxima que venga)
       const nextTaxDate = today <= taxDateCurrentMonth ? taxDateCurrentMonth : taxDateNextMonth;
-      
-      // Calcular diferencia en días
       const diffTime = nextTaxDate - today;
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      // Formatear fecha para mostrar
       const options = { day: 'numeric', month: 'long' };
       const formattedDate = nextTaxDate.toLocaleDateString('es-ES', options);
-      
       setDaysLeft(diffDays);
       setNextDate(formattedDate);
     };
-
     calculateDaysLeft();
   }, []);
 
-  // Estilo condicional para cuando queden pocos días
   const getCountdownStyle = () => {
-    if (daysLeft <= 3) {
-      return 'bg-red-100 text-red-800';
-    } else if (daysLeft <= 7) {
-      return 'bg-yellow-100 text-yellow-800';
-    }
+    if (daysLeft <= 3) return 'bg-red-100 text-red-800';
+    if (daysLeft <= 7) return 'bg-yellow-100 text-yellow-800';
     return 'bg-green-100 text-green-800';
   };
 
@@ -75,10 +64,19 @@ const TaxCountdown = () => {
 };
 
 const MainPage = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+ 
+  if (!user.admin) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
+        <h1 className="text-2xl font-bold text-red-600">Acceso denegado</h1>
+        <p className="text-gray-700">No tienes permisos para acceder a esta página.</p>
+      </div>
+    );
+  }
 
-  // Datos para las gráficas
   const incomeData = {
     labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
     datasets: [
@@ -124,9 +122,7 @@ const MainPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      
       <div className="relative pt-20">
-        {/* Menú de cuenta */}
         <div className="absolute top-6 right-6">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
@@ -146,9 +142,7 @@ const MainPage = () => {
         </div>
 
         <div className="container mx-auto px-6 py-8">
-          {/* Header Section */}
           <div className="grid gap-8 mb-12 md:grid-cols-2">
-            {/* Welcome Message */}
             <div className="bg-white p-8 rounded-xl shadow-sm">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">Bienvenido de vuelta, Fabrizzio</h1>
               <p className="text-gray-500">Último acceso: Hoy a las 14:30</p>
@@ -158,7 +152,6 @@ const MainPage = () => {
               </div>
             </div>
 
-            {/* Quick Stats */}
             <div className="grid grid-cols-2 gap-4">
               <TaxCountdown />
               <div className="bg-white p-4 rounded-xl shadow-sm flex items-center gap-4">
@@ -191,11 +184,9 @@ const MainPage = () => {
             </div>
           </div>
 
-          {/* Gráficas y estadísticas */}
           <section className="mb-12">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Estadísticas y Gráficas</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Gráfica de ingresos */}
               <div className="bg-white p-6 rounded-xl shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
@@ -208,41 +199,35 @@ const MainPage = () => {
                   </select>
                 </div>
                 <div className="h-64">
-                  <Bar 
-                    data={incomeData} 
-                    options={{ 
+                  <Bar
+                    data={incomeData}
+                    options={{
                       maintainAspectRatio: false,
                       scales: {
-                        y: {
-                          beginAtZero: true
-                        }
+                        y: { beginAtZero: true }
                       }
-                    }} 
+                    }}
                   />
                 </div>
               </div>
 
-              {/* Estado de proyectos */}
               <div className="bg-white p-6 rounded-xl shadow-sm">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <FiPieChart className="text-blue-500" /> Estado de Proyectos
                 </h3>
                 <div className="h-64 flex items-center justify-center">
-                  <Pie 
-                    data={projectStatusData} 
-                    options={{ 
+                  <Pie
+                    data={projectStatusData}
+                    options={{
                       maintainAspectRatio: false,
                       plugins: {
-                        legend: {
-                          position: 'right'
-                        }
+                        legend: { position: 'right' }
                       }
-                    }} 
+                    }}
                   />
                 </div>
               </div>
 
-              {/* Productividad semanal */}
               <div className="bg-white p-6 rounded-xl shadow-sm lg:col-span-2">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
@@ -253,9 +238,9 @@ const MainPage = () => {
                   </div>
                 </div>
                 <div className="h-80">
-                  <Line 
-                    data={productivityData} 
-                    options={{ 
+                  <Line
+                    data={productivityData}
+                    options={{
                       maintainAspectRatio: false,
                       scales: {
                         y: {
@@ -263,50 +248,10 @@ const MainPage = () => {
                           max: 10
                         }
                       }
-                    }} 
+                    }}
                   />
                 </div>
               </div>
-            </div>
-          </section>
-
-          {/* Recent Activity */}
-          <section className="mb-12">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Actividad Reciente</h2>
-              <button className="text-sm text-blue-600 hover:text-blue-800">Ver todo</button>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actividad</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detalles</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {[
-                    { activity: "Nuevo proyecto creado", details: "Sitio Web Corp", time: "10:45 AM", status: "Completado" },
-                    { activity: "Pago recibido", details: "Factura #2456 - $2,500", time: "Ayer", status: "Completado" },
-                    { activity: "Reunión con cliente", details: "TechSolutions - 30min", time: "Ayer", status: "Pendiente" },
-                    { activity: "Recordatorio", details: "Enviar propuesta antes del viernes", time: "Lun 15 Jun", status: "Pendiente" },
-                  ].map((item, index) => (
-                    <tr key={index} className="hover:bg-gray-50 cursor-pointer">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.activity}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.details}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.time}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                          ${item.status === "Completado" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
-                          {item.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </section>
         </div>
