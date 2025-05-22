@@ -434,26 +434,7 @@ const DetalleProyecto = () => {
           >
             <FiArrowLeft className="mr-2" /> Volver
           </button>
-          
-          <div className="flex items-center space-x-3">
-            <span className={`${styles.badge} ${COLORES_ESTADO[proyecto.estado]}`}>
-              {proyecto.estado}
-            </span>
-            <button
-              onClick={toggleEstadoProyecto}
-              className={`${proyecto.estado === ESTADOS_PROYECTO.ABIERTO ? styles.buttonDanger : styles.buttonSuccess} flex items-center`}
-            >
-              {proyecto.estado === ESTADOS_PROYECTO.ABIERTO ? (
-                <>
-                  <FiX className="mr-2" /> Cerrar
-                </>
-              ) : (
-                <>
-                  <FiRefreshCw className="mr-2" /> Reabrir
-                </>
-              )}
-            </button>
-          </div>
+           
         </div>
 
         {/* Tarjeta de información del proyecto */}
@@ -551,69 +532,6 @@ const DetalleProyecto = () => {
                 <p className="text-gray-600">
                   {proyecto.fecha_estimada ? new Date(proyecto.fecha_estimada).toLocaleDateString() : 'No especificada'}
                 </p>
-              )}
-            </div>
-          </div>
-
-          {/* Barra de progreso */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-medium text-gray-700">Progreso del proyecto</h3>
-              
-              {editandoPorcentaje ? (
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={porcentajeManual}
-                    onChange={(e) => setPorcentajeManual(Math.min(100, Math.max(0, e.target.value)))}
-                    className={`${styles.input} w-20 text-center`}
-                  />
-                  <button
-                    onClick={() => actualizarPorcentajeProyecto(parseInt(porcentajeManual))}
-                    className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                    title="Guardar"
-                  >
-                    <FiCheck size={18} />
-                  </button>
-                  <button
-                    onClick={() => setEditandoPorcentaje(false)}
-                    className="p-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-                    title="Cancelar"
-                  >
-                    <FiX size={18} />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setEditandoPorcentaje(true)}
-                  className={`${styles.buttonSecondary} flex items-center text-sm`}
-                >
-                  <FiEdit2 className="mr-2" /> Editar
-                </button>
-              )}
-            </div>
-
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div
-                className="bg-gradient-to-r from-indigo-500 to-blue-600 h-3 rounded-full transition-all duration-500"
-                style={{ width: `${porcentajeMostrado}%` }}
-              ></div>
-            </div>
-            
-            <div className="flex justify-between items-center mt-2">
-              <span className="text-sm text-gray-600">
-                {proyecto.porcentaje_manual ? 'Manual' : 'Automático'}: {porcentajeMostrado}%
-              </span>
-              
-              {!proyecto.porcentaje_manual && (
-                <button
-                  onClick={() => actualizarPorcentajeProyecto(porcentajeAutomatico)}
-                  className="text-sm text-indigo-600 hover:text-indigo-800 hover:underline"
-                >
-                  Usar este porcentaje
-                </button>
               )}
             </div>
           </div>

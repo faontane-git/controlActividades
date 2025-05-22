@@ -17,7 +17,7 @@ import MenuPage from './pages/Main/MenuPage';
 import Proyectos from './pages/Proyectos';
 import DetalleProyecto from './pages/Proyectos/DetalleProyecto';
 import SoftwareBoard from './pages/Proyectos';
-import NewProject from './pages/Proyectos/NuevoProyecto';
+import NewProject from './pages/Proyectos/Crear Proyecto/NuevoProyecto';
 import RegisterPage from './pages/Login/RegisterPage';
 import Personal from './pages/Personal/Personal';
 import BolsaDeValores from './pages/Bolsa';
@@ -34,8 +34,8 @@ function App() {
         <Route path="/opciones" element={<OptionsPage />} />
 
         {/* Rutas de Personal */}
-        <Route path="/personal" element={<Personal/>} />
-<Route path="/bolsa" element={<BolsaDeValores />} />
+        <Route path="/personal" element={<Personal />} />
+        <Route path="/bolsa" element={<BolsaDeValores />} />
 
         {/* Rutas de Proyectos */}
         <Route path="/proyectos" element={<Proyectos />} />

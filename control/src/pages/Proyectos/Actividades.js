@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
 
-const Actividades = ({ actividades = [], onAddActividad, onSelectActividad }) => {
+const Actividades = ({ actividades = [], onAddActividad, onSelectActividad, empleados = [] }) => {
   const [nuevaActividad, setNuevaActividad] = useState({
     nombre: '',
     descripcion: '',
     fechaInicio: '',
     fechaFin: '',
     horasEstimadas: 0,
-    microActividades: []
+    microActividades: [],
+    empleadoId: ''
   });
 
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -24,7 +25,8 @@ const Actividades = ({ actividades = [], onAddActividad, onSelectActividad }) =>
       ...nuevaActividad,
       id: actividades.length + 1,
       horasEstimadas: parseInt(nuevaActividad.horasEstimadas),
-      microActividades: []  // Aseguramos array vacío al crear
+      microActividades: [],
+      empleadoId: parseInt(nuevaActividad.empleadoId)
     };
     onAddActividad(actividadCompleta);
     setNuevaActividad({
@@ -33,7 +35,8 @@ const Actividades = ({ actividades = [], onAddActividad, onSelectActividad }) =>
       fechaInicio: '',
       fechaFin: '',
       horasEstimadas: 0,
-      microActividades: []
+      microActividades: [],
+      empleadoId: ''
     });
     setMostrarFormulario(false);
   };
@@ -107,6 +110,21 @@ const Actividades = ({ actividades = [], onAddActividad, onSelectActividad }) =>
                 className="w-full p-2 border rounded"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Responsable</label>
+              <select
+                name="empleadoId"
+                value={nuevaActividad.empleadoId}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+                required
+              >
+                <option value="">Selecciona un empleado</option>
+                {empleados.map(emp => (
+                  <option key={emp.id} value={emp.id}>{emp.nombre}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className="flex justify-end space-x-2">
             <button
@@ -129,6 +147,7 @@ const Actividades = ({ actividades = [], onAddActividad, onSelectActividad }) =>
       <div className="space-y-4">
         {actividades.map(actividad => {
           const micro = actividad.microActividades || actividad.microactividades || [];
+          const responsable = empleados.find(e => e.id === actividad.empleadoId)?.nombre || 'No asignado';
 
           return (
             <div
@@ -140,6 +159,7 @@ const Actividades = ({ actividades = [], onAddActividad, onSelectActividad }) =>
                 <div>
                   <h3 className="font-semibold text-lg text-gray-800">{actividad.nombre}</h3>
                   <p className="text-gray-600">{actividad.descripcion}</p>
+                  <p className="text-sm text-gray-500 mt-1">Responsable: {responsable}</p>
                 </div>
                 <div className="text-right">
                   <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">

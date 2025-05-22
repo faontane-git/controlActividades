@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaArrowLeft, FaSave, FaCalendarAlt, FaAlignLeft } from 'react-icons/fa';
-import NavBar from '../NavBar/Navbar';
+import NavBar from '../../NavBar/Navbar';
 
 // Estilos del contenedor principal
 const Container = styled.div`
