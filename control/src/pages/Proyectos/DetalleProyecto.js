@@ -111,10 +111,54 @@ const DetalleProyecto = () => {
             <FiArrowLeft className="mr-2 group-hover:-translate-x-1 transition-transform" />
             <span className="font-medium">Volver a proyectos</span>
           </button>
+
+          {/* Fechas y estado compacto */}
+          <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+            <span className="hidden sm:inline-flex items-center gap-1">
+              <span className="font-medium">Inicio:</span>
+              <span>{proyecto.fechaInicio}</span>
+            </span>
+            
+            <span className="hidden sm:inline-flex items-center gap-1">
+              <span className="font-medium">Fin:</span>
+              <span>{proyecto.fechaFinEstimada}</span>
+            </span>
+            
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              proyecto.estado === 'completado' 
+                ? 'bg-green-100 text-green-800' 
+                : proyecto.estado === 'en-progreso' 
+                  ? 'bg-blue-100 text-blue-800' 
+                  : 'bg-yellow-100 text-yellow-800'
+            }`}>
+              {proyecto.estado === 'completado' 
+                ? '✓ Completado' 
+                : proyecto.estado === 'en-progreso' 
+                  ? '⌛ En progreso' 
+                  : '⏳ Pendiente'}
+            </span>
+          </div>
         </div>
 
         {/* Encabezado del proyecto */}
-        <ProyectoHeader proyecto={proyecto} />
+        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{proyecto.nombre}</h1>
+          <p className="text-gray-600 mt-2">{proyecto.descripcion}</p>
+          
+          {/* Versión responsive para móviles */}
+          <div className="sm:hidden mt-3">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+              <span className="inline-flex items-center gap-1">
+                <span className="font-medium">Inicio:</span>
+                <span>{proyecto.fechaInicio}</span>
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <span className="font-medium">Fin:</span>
+                <span>{proyecto.fechaFinEstimada}</span>
+              </span>
+            </div>
+          </div>
+        </div>
 
         {/* Navegación por pestañas */}
         <TabsNavigation

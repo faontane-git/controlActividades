@@ -14,7 +14,7 @@ import {
   FiFolder,
   FiFileText,
   FiUsers,
-  FiTrendingUp // Nuevo ícono para Bolsa
+  FiBriefcase // Nuevo ícono para Clientes
 } from 'react-icons/fi';
 
 const NavBar = () => {
@@ -68,7 +68,7 @@ const NavBar = () => {
         </div>
       </nav>
 
-      {/* Menú lateral con nueva opción */}
+      {/* Menú lateral con nueva opción de Clientes */}
       <div className={`fixed top-0 left-0 h-full w-64 bg-white shadow-md transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform z-50`}>
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-lg font-semibold">Menú</h2>
@@ -85,12 +85,12 @@ const NavBar = () => {
             <FiUsers className="mr-3" /> Administrar Personal
           </button>
 
-          {/* Nueva opción de Bolsa de Valores */}
+          {/* Nueva opción de Clientes */}
           <button 
-            onClick={() => navigate('/bolsa')} 
+            onClick={() => navigate('/clientes')} 
             className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg"
           >
-            <FiTrendingUp className="mr-3" /> Bolsa de Valores
+            <FiBriefcase className="mr-3" /> Clientes
           </button>
 
           <button onClick={() => navigate('/proyectos')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
