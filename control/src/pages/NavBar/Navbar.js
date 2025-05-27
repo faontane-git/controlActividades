@@ -14,7 +14,8 @@ import {
   FiFolder,
   FiFileText,
   FiUsers,
-  FiBriefcase // Nuevo ícono para Clientes
+  FiBriefcase,
+  FiDollarSign // Nuevo ícono para Cotizar
 } from 'react-icons/fi';
 
 const NavBar = () => {
@@ -29,7 +30,7 @@ const NavBar = () => {
 
   return (
     <>
-      {/* Barra de navegación superior (sin cambios) */}
+      {/* Barra de navegación superior */}
       <nav className="fixed top-0 left-0 w-full flex items-center h-20 bg-white/95 backdrop-blur-md border-b border-gray-100 z-50 shadow-sm">
         <div className="w-full max-w-7xl mx-auto flex items-center justify-between px-2">
           <div className="flex items-center gap-1 pl-2">
@@ -68,7 +69,7 @@ const NavBar = () => {
         </div>
       </nav>
 
-      {/* Menú lateral con nueva opción de Clientes */}
+      {/* Menú lateral con opción de Cotizar */}
       <div className={`fixed top-0 left-0 h-full w-64 bg-white shadow-md transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform z-50`}>
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-lg font-semibold">Menú</h2>
@@ -85,7 +86,6 @@ const NavBar = () => {
             <FiUsers className="mr-3" /> Administrar Personal
           </button>
 
-          {/* Nueva opción de Clientes */}
           <button 
             onClick={() => navigate('/clientes')} 
             className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg"
@@ -96,6 +96,15 @@ const NavBar = () => {
           <button onClick={() => navigate('/proyectos')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiFolder className="mr-3" /> Proyectos
           </button>
+
+          {/* Nueva opción de Cotizar */}
+          <button 
+            onClick={() => navigate('/cotizar')} 
+            className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg"
+          >
+            <FiDollarSign className="mr-3" /> Cotizar
+          </button>
+
           <button onClick={() => navigate('/facturador')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiFileText className="mr-3" /> Facturador
           </button>

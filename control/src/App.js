@@ -21,6 +21,7 @@ import NewProject from './pages/Proyectos/Crear Proyecto/NuevoProyecto';
 import RegisterPage from './pages/Login/RegisterPage';
 import Personal from './pages/Personal/Personal';
 import BolsaDeValores from './pages/Bolsa';
+import Clientes from './pages/Clientes/Clientes';
 
 function App() {
   return (
@@ -47,6 +48,8 @@ function App() {
         <Route path="/factura" element={<GenerarFactura />} />
         <Route path="/productos" element={<CrearProductos />} />
         <Route path="/historico" element={<VerHistorico />} />
+        {/* Rutas de Facturación */}
+        <Route path="/clientes" element={<Clientes />} />
 
         {/* Otras rutas */}
         <Route path="/trabajo" element={<SoftwareBoard />} />
