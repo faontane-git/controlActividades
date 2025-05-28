@@ -22,6 +22,7 @@ import RegisterPage from './pages/Login/RegisterPage';
 import Personal from './pages/Personal/Personal';
 import BolsaDeValores from './pages/Bolsa';
 import Clientes from './pages/Clientes/Clientes';
+import Cotizar from './pages/Cotizar/Cotizar';
 
 function App() {
   return (
@@ -50,6 +51,8 @@ function App() {
         <Route path="/historico" element={<VerHistorico />} />
         {/* Rutas de Facturación */}
         <Route path="/clientes" element={<Clientes />} />
+        {/* Rutas de Cotizar */}
+        <Route path="/cotizar" element={<Cotizar />} />
 
         {/* Otras rutas */}
         <Route path="/trabajo" element={<SoftwareBoard />} />

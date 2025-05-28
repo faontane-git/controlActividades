@@ -67,7 +67,7 @@ const MainPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
- 
+
   if (!user.admin) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
@@ -228,30 +228,6 @@ const MainPage = () => {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl shadow-sm lg:col-span-2">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <FiActivity className="text-purple-500" /> Productividad Semanal
-                  </h3>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <FiCalendar size={16} /> Semana 26
-                  </div>
-                </div>
-                <div className="h-80">
-                  <Line
-                    data={productivityData}
-                    options={{
-                      maintainAspectRatio: false,
-                      scales: {
-                        y: {
-                          beginAtZero: true,
-                          max: 10
-                        }
-                      }
-                    }}
-                  />
-                </div>
-              </div>
             </div>
           </section>
         </div>
