@@ -23,6 +23,9 @@ import Personal from './pages/Personal/Personal';
 import BolsaDeValores from './pages/Bolsa';
 import Clientes from './pages/Clientes/Clientes';
 import Cotizar from './pages/Cotizar/Cotizar';
+import CotizacionesList from './pages/Cotizar/CotizacionesList';
+import CotizacionDetalle from './pages/Cotizar/CotizacionDetalle';
+import CotizacionMenu from './pages/Cotizar/CotizacionMenu';
 
 function App() {
   return (
@@ -52,7 +55,10 @@ function App() {
         {/* Rutas de Facturación */}
         <Route path="/clientes" element={<Clientes />} />
         {/* Rutas de Cotizar */}
-        <Route path="/cotizar" element={<Cotizar />} />
+        <Route path="/cotizar" element={<CotizacionMenu />} />
+        <Route path="/cotizar/nueva" element={<Cotizar />} />
+        <Route path="/cotizaciones" element={<CotizacionesList />} />
+        <Route path="/cotizaciones/:id" element={<CotizacionDetalle />} />
 
         {/* Otras rutas */}
         <Route path="/trabajo" element={<SoftwareBoard />} />
