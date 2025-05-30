@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiFileText, FiSearch, FiChevronLeft, FiChevronRight,FiPlus } from 'react-icons/fi';
+import { FiFileText, FiSearch, FiChevronLeft, FiChevronRight, FiPlus } from 'react-icons/fi';
+import NavBar from '../NavBar/Navbar';
 
 const CotizacionesList = () => {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ const CotizacionesList = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-       
+      <NavBar />
       <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-8">
         <div className="bg-white shadow rounded-lg p-6">
           <div className="flex justify-between items-center mb-6">
@@ -100,7 +101,7 @@ const CotizacionesList = () => {
                   currentItems.map((cotizacion) => {
                     const fechaValidez = new Date(cotizacion.fecha);
                     fechaValidez.setDate(fechaValidez.getDate() + cotizacion.validez);
-                    
+
                     return (
                       <tr key={cotizacion.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap font-medium">{cotizacion.numero}</td>
@@ -108,13 +109,12 @@ const CotizacionesList = () => {
                         <td className="px-6 py-4 whitespace-nowrap">{cotizacion.cliente}</td>
                         <td className="px-6 py-4 whitespace-nowrap">${cotizacion.total}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            cotizacion.estado === 'Aprobada' 
-                              ? 'bg-green-100 text-green-800' 
-                              : cotizacion.estado === 'Rechazada' 
-                                ? 'bg-red-100 text-red-800' 
+                          <span className={`px-2 py-1 text-xs rounded-full ${cotizacion.estado === 'Aprobada'
+                              ? 'bg-green-100 text-green-800'
+                              : cotizacion.estado === 'Rechazada'
+                                ? 'bg-red-100 text-red-800'
                                 : 'bg-yellow-100 text-yellow-800'
-                          }`}>
+                            }`}>
                             {cotizacion.estado}
                           </span>
                         </td>

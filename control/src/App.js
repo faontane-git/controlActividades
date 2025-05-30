@@ -20,12 +20,12 @@ import SoftwareBoard from './pages/Proyectos';
 import NewProject from './pages/Proyectos/Crear Proyecto/NuevoProyecto';
 import RegisterPage from './pages/Login/RegisterPage';
 import Personal from './pages/Personal/Personal';
-import BolsaDeValores from './pages/Bolsa';
 import Clientes from './pages/Clientes/Clientes';
 import Cotizar from './pages/Cotizar/Cotizar';
 import CotizacionesList from './pages/Cotizar/CotizacionesList';
 import CotizacionDetalle from './pages/Cotizar/CotizacionDetalle';
 import CotizacionMenu from './pages/Cotizar/CotizacionMenu';
+import PlantillasCotizacion from './pages/Cotizar/PlantillasCotizacion';
 
 function App() {
   return (
@@ -40,8 +40,7 @@ function App() {
 
         {/* Rutas de Personal */}
         <Route path="/personal" element={<Personal />} />
-        <Route path="/bolsa" element={<BolsaDeValores />} />
-
+ 
         {/* Rutas de Proyectos */}
         <Route path="/proyectos" element={<Proyectos />} />
         <Route path="/proyectos/nuevo" element={<NewProject />} />
@@ -57,6 +56,7 @@ function App() {
         {/* Rutas de Cotizar */}
         <Route path="/cotizar" element={<CotizacionMenu />} />
         <Route path="/cotizar/nueva" element={<Cotizar />} />
+        <Route path="/cotizar/plantillas" element={<PlantillasCotizacion />} />
         <Route path="/cotizaciones" element={<CotizacionesList />} />
         <Route path="/cotizaciones/:id" element={<CotizacionDetalle />} />
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiPrinter, FiArrowLeft } from 'react-icons/fi';
+import NavBar from '../NavBar/Navbar';
 
 const CotizacionDetalle = () => {
   const { id } = useParams();
@@ -40,7 +41,7 @@ const CotizacionDetalle = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-       
+      <NavBar />
       <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-8">
         <div className="bg-white shadow rounded-lg p-6">
           <div className="flex justify-between items-start mb-6">
@@ -50,7 +51,7 @@ const CotizacionDetalle = () => {
             >
               <FiArrowLeft className="mr-1" /> Volver al listado
             </button>
-            
+
             <div className="flex space-x-3">
               <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
                 <FiPrinter className="mr-2" /> Imprimir
@@ -65,18 +66,17 @@ const CotizacionDetalle = () => {
                 <div className="space-y-2">
                   <p><span className="font-medium">Número:</span> {cotizacion.numero}</p>
                   <p><span className="font-medium">Fecha:</span> {cotizacion.fecha}</p>
-                  <p><span className="font-medium">Estado:</span> 
-                    <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                      cotizacion.estado === 'Aprobada' ? 'bg-green-100 text-green-800' : 
-                      cotizacion.estado === 'Rechazada' ? 'bg-red-100 text-red-800' : 
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
+                  <p><span className="font-medium">Estado:</span>
+                    <span className={`ml-2 px-2 py-1 text-xs rounded-full ${cotizacion.estado === 'Aprobada' ? 'bg-green-100 text-green-800' :
+                        cotizacion.estado === 'Rechazada' ? 'bg-red-100 text-red-800' :
+                          'bg-yellow-100 text-yellow-800'
+                      }`}>
                       {cotizacion.estado}
                     </span>
                   </p>
                 </div>
               </div>
-              
+
               <div>
                 <h2 className="text-xl font-bold text-gray-800 mb-4">Cliente</h2>
                 <div className="space-y-2">
@@ -84,13 +84,13 @@ const CotizacionDetalle = () => {
                   <p>{cotizacion.contacto}</p>
                 </div>
               </div>
-              
+
               <div>
                 <h2 className="text-xl font-bold text-gray-800 mb-4">Validez</h2>
                 <p>{cotizacion.validez} días</p>
               </div>
             </div>
-            
+
             <div className="mb-8">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Ítems</h2>
               <div className="overflow-x-auto">
@@ -116,13 +116,13 @@ const CotizacionDetalle = () => {
                 </table>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2">
                 <h2 className="text-xl font-bold text-gray-800 mb-2">Notas</h2>
                 <p className="text-gray-700 whitespace-pre-line">{cotizacion.notas || 'Ninguna nota adicional'}</p>
               </div>
-              
+
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium text-gray-700">Subtotal:</span>

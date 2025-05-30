@@ -9,7 +9,7 @@ import {
   FiX,
   FiHome,
   FiSettings,
-  FiActivity, 
+  FiActivity,
   FiAward,
   FiFolder,
   FiFileText,
@@ -32,20 +32,22 @@ const NavBar = () => {
     <>
       {/* Barra de navegación superior */}
       <nav className="fixed top-0 left-0 w-full flex items-center h-20 bg-white/95 backdrop-blur-md border-b border-gray-100 z-50 shadow-sm">
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="text-gray-700 text-2xl ml-3"
+        >
+          <FiMenu />
+        </button>
+        <img
+          src={logo}
+          alt="Logo"
+          className="h-10 ml-3 w-auto transition-opacity hover:opacity-80 cursor-pointer"
+          onClick={() => navigate('/main')}
+        />
+
+
         <div className="w-full max-w-7xl mx-auto flex items-center justify-between px-2">
           <div className="flex items-center gap-1 pl-2">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="text-gray-700 text-2xl ml-0 mr-3"
-            >
-              <FiMenu />
-            </button>
-            <img
-              src={logo}
-              alt="Logo"
-              className="h-10 w-auto transition-opacity hover:opacity-80 cursor-pointer"
-              onClick={() => navigate('/main')}
-            />
           </div>
 
           <div className="relative">
@@ -81,13 +83,13 @@ const NavBar = () => {
           <button onClick={() => navigate('/main')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiHome className="mr-3" /> Inicio
           </button>
-          
+
           <button onClick={() => navigate('/personal')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiUsers className="mr-3" /> Administrar Personal
           </button>
 
-          <button 
-            onClick={() => navigate('/clientes')} 
+          <button
+            onClick={() => navigate('/clientes')}
             className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg"
           >
             <FiBriefcase className="mr-3" /> Clientes
@@ -98,8 +100,8 @@ const NavBar = () => {
           </button>
 
           {/* Nueva opción de Cotizar */}
-          <button 
-            onClick={() => navigate('/cotizar')} 
+          <button
+            onClick={() => navigate('/cotizar')}
             className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg"
           >
             <FiDollarSign className="mr-3" /> Cotizar
@@ -108,7 +110,7 @@ const NavBar = () => {
           <button onClick={() => navigate('/facturador')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiFileText className="mr-3" /> Facturador
           </button>
- 
+
           <button onClick={() => navigate('/configuracion')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiSettings className="mr-3" /> Configuración
           </button>

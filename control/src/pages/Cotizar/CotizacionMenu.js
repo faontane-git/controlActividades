@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiFileText, FiPlus, FiList, FiCopy } from 'react-icons/fi';
+import NavBar from '../NavBar/Navbar';
 
 const CotizacionMenu = () => {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ const CotizacionMenu = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-       
+      <NavBar />
       <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-8">
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Cotizaciones</h1>
@@ -39,7 +40,7 @@ const CotizacionMenu = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {cards.map((card, index) => (
-            <div 
+            <div
               key={index}
               onClick={card.action}
               className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer flex flex-col items-center text-center"
