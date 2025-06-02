@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from '../src/pages/Home/HomePage';
 import ActividadesPage from './pages/Actividades/ActividadesPage';
-import OptionsPage from './pages/Opciones/OptionsPage';
 import FacturacionPage from './pages/Facturacion';
 import GenerarFactura from './pages/Facturacion/factura';
 import VerHistorico from './pages/Facturacion/historico';
@@ -36,7 +35,6 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/main" element={<MainPage />} />
         <Route path="/actividades" element={<HomePage />} />
-        <Route path="/opciones" element={<OptionsPage />} />
 
         {/* Rutas de Personal */}
         <Route path="/personal" element={<Personal />} />

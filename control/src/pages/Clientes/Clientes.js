@@ -17,15 +17,46 @@ const Clientes = () => {
   const [currentCliente, setCurrentCliente] = useState({
     id: '',
     nombre: '',
-    contacto: '',
-    email: '',
-    telefono: '',
-    direccion: '',
     tipo: 'Persona',
     razon: 'Cedula',
     identificacion: '',
+    celular: '',
+    email: '',
+    direccion: '',
   });
   const itemsPerPage = 10;
+
+
+
+  useEffect(() => {
+    const fecthClientes = async () => {
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+      try {
+        const response = await fetch(`${supabaseUrl}/rest/v1/clientes?select=id,nombre`, {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al obtener empleados');
+        }
+
+        const data = await response.json();
+        console.log(data);
+      } catch (error) {
+        console.error('Fetch error:', error);
+      }
+    };
+
+    fecthClientes();
+  }, []);
+
+
 
   // Datos de ejemplo
   useEffect(() => {
@@ -34,11 +65,12 @@ const Clientes = () => {
         const mockData = Array.from({ length: 25 }, (_, i) => ({
           id: i + 1,
           nombre: `Cliente ${i % 2 === 0 ? 'Corporativo' : 'Individual'} ${i + 1}`,
-          contacto: `Contacto ${i + 1}`,
-          email: `cliente${i + 1}@example.com`,
-          telefono: `55${Math.floor(10000000 + Math.random() * 90000000)}`,
-          direccion: `Calle ${i + 1}, Col. Centro, CDMX`,
           tipo: i % 2 === 0 ? 'Persona moral' : 'Persona física',
+          razon: 'Cedula',
+          identificacion: '099999999',
+          celular: `55${Math.floor(10000000 + Math.random() * 90000000)}`,
+          email: `cliente${i + 1}@example.com`,
+          direccion: `Calle ${i + 1}, Col. Centro, CDMX`,
           fechaRegistro: new Date(Date.now() - i * 86400000).toISOString().split('T')[0]
         }));
         setClientes(mockData);
@@ -71,11 +103,12 @@ const Clientes = () => {
       setCurrentCliente({
         id: '',
         nombre: '',
-        contacto: '',
+        tipo: 'Persona',
+        razon: 'Cedula',
+        identificacion: '',
+        celular: '',
         email: '',
-        telefono: '',
         direccion: '',
-        tipo: 'Persona'
       });
       setEditMode(false);
     }
@@ -127,7 +160,7 @@ const Clientes = () => {
       <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-8">
         <div className="bg-white shadow rounded-lg p-6">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Gestión de Clientes</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Clientes</h1>
             <button
               onClick={() => openModal()}
               className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
@@ -180,15 +213,16 @@ const Clientes = () => {
                     {currentItems.map((cliente) => (
                       <tr key={cliente.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{cliente.nombre}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{cliente.contacto}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{cliente.email}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{cliente.telefono}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 text-xs rounded-full ${cliente.tipo === 'Persona moral' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
                             }`}>
                             {cliente.tipo}
                           </span>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{cliente.razon}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{cliente.identificacion}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{cliente.celular}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{cliente.email}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button
                             onClick={() => openModal(cliente)}
