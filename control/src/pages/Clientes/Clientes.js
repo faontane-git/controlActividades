@@ -34,7 +34,7 @@ const Clientes = () => {
       const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
       try {
-        const response = await fetch(`${supabaseUrl}/rest/v1/clientes?select=id,nombre`, {
+        const response = await fetch(`${supabaseUrl}/rest/v1/clientes?select=id,nombre,tipo,razon,identificacion,celular,email,direccion,fecha_registro`, {
           headers: {
             apikey: supabaseKey,
             Authorization: `Bearer ${supabaseKey}`,
@@ -47,38 +47,14 @@ const Clientes = () => {
         }
 
         const data = await response.json();
-        console.log(data);
+        setClientes(data);
+        setLoading(false);
       } catch (error) {
         console.error('Fetch error:', error);
       }
     };
 
     fecthClientes();
-  }, []);
-
-
-
-  // Datos de ejemplo
-  useEffect(() => {
-    const fetchClientes = () => {
-      setTimeout(() => {
-        const mockData = Array.from({ length: 25 }, (_, i) => ({
-          id: i + 1,
-          nombre: `Cliente ${i % 2 === 0 ? 'Corporativo' : 'Individual'} ${i + 1}`,
-          tipo: i % 2 === 0 ? 'Persona moral' : 'Persona física',
-          razon: 'Cedula',
-          identificacion: '099999999',
-          celular: `55${Math.floor(10000000 + Math.random() * 90000000)}`,
-          email: `cliente${i + 1}@example.com`,
-          direccion: `Calle ${i + 1}, Col. Centro, CDMX`,
-          fechaRegistro: new Date(Date.now() - i * 86400000).toISOString().split('T')[0]
-        }));
-        setClientes(mockData);
-        setLoading(false);
-      }, 800);
-    };
-
-    fetchClientes();
   }, []);
 
   // Filtrar clientes
@@ -122,21 +98,54 @@ const Clientes = () => {
   };
 
   // Guardar cliente
-  const saveCliente = () => {
+  const saveCliente = async () => {
+    console.log("XD");
+    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+    const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
     if (editMode) {
-      setClientes(prev =>
-        prev.map(c => c.id === currentCliente.id ? currentCliente : c)
-      );
-    } else {
-      const newCliente = {
-        ...currentCliente,
-        id: Date.now(),
-        fechaRegistro: new Date().toISOString().split('T')[0]
-      };
-      setClientes(prev => [...prev, newCliente]);
+      // En el futuro puedes usar PATCH para actualizar el cliente si deseas
+      alert("Modo edición aún no implementado con Supabase.");
+      return;
     }
-    setModalOpen(false);
+
+    const newCliente = {
+      nombre: currentCliente.nombre,
+      tipo: currentCliente.tipo,
+      razon: currentCliente.razon,
+      identificacion: currentCliente.identificacion,
+      celular: currentCliente.celular,
+      email: currentCliente.email,
+      direccion: currentCliente.direccion,
+      fecha_registro: new Date().toISOString().split('T')[0],
+    };
+
+    try {
+   
+      const response = await fetch(`${supabaseUrl}/rest/v1/clientes`, {
+        method: 'POST',
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation'
+        },
+        body: JSON.stringify(newCliente)
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al guardar cliente en Supabase');
+      }
+
+      const inserted = await response.json();
+      setClientes(prev => [...prev, ...inserted]);
+      setModalOpen(false);
+    } catch (error) {
+      console.error('Error al guardar cliente:', error);
+      alert('No se pudo guardar el cliente.');
+    }
   };
+
 
   // Eliminar cliente
   const deleteCliente = (id) => {
@@ -210,12 +219,11 @@ const Clientes = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {currentItems.map((cliente) => (
+                    {clientes.map((cliente) => (
                       <tr key={cliente.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{cliente.nombre}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs rounded-full ${cliente.tipo === 'Persona moral' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-                            }`}>
+                          <span className={`px-2 py-1 text-xs rounded-full ${cliente.tipo === 'Persona moral' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
                             {cliente.tipo}
                           </span>
                         </td>
@@ -345,10 +353,10 @@ const Clientes = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Cédula*</label>
                   <input
                     type="text"
-                    name="nombre"
-                    value={currentCliente.nombre}
+                    name="identificacion"
+                    value={currentCliente.identificacion}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     required
                   />
                 </div>
@@ -357,8 +365,8 @@ const Clientes = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Celular*</label>
                   <input
                     type="tel"
-                    name="telefono"
-                    value={currentCliente.telefono}
+                    name="celular"
+                    value={currentCliente.celular}
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     required
@@ -402,8 +410,7 @@ const Clientes = () => {
                 type="button"
                 onClick={saveCliente}
                 className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center"
-                disabled={!currentCliente.nombre || !currentCliente.contacto || !currentCliente.email || !currentCliente.telefono}
-              >
+               >
                 <FiSave className="mr-2" /> {editMode ? 'Actualizar' : 'Guardar'} Cliente
               </button>
             </div>
