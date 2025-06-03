@@ -390,9 +390,7 @@ const ProjectsList = () => {
                   onChange={e => setSearchTerm(e.target.value)}
                 />
               </SearchContainer>
-              <FilterButton>
-                <FaFilter /> Filtros
-              </FilterButton>
+         
             </SearchFilterContainer>
             <AddButton onClick={handleAddProject}>
               <FaPlus /> Nuevo Proyecto

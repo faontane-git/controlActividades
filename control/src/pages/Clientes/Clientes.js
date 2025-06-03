@@ -4,6 +4,7 @@ import {
   FiUserPlus, FiSearch, FiEdit2, FiTrash2,
   FiChevronLeft, FiChevronRight, FiX, FiSave
 } from 'react-icons/fi';
+import Swal from 'sweetalert2';
 import NavBar from '../NavBar/Navbar';
 
 const Clientes = () => {
@@ -25,6 +26,7 @@ const Clientes = () => {
     direccion: '',
   });
   const itemsPerPage = 10;
+  const [clienteId, setClienteId] = useState(null);
 
 
 
@@ -99,17 +101,10 @@ const Clientes = () => {
 
   // Guardar cliente
   const saveCliente = async () => {
-    console.log("XD");
     const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
     const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
-    if (editMode) {
-      // En el futuro puedes usar PATCH para actualizar el cliente si deseas
-      alert("Modo edición aún no implementado con Supabase.");
-      return;
-    }
-
-    const newCliente = {
+    let clienteData = {
       nombre: currentCliente.nombre,
       tipo: currentCliente.tipo,
       razon: currentCliente.razon,
@@ -117,20 +112,55 @@ const Clientes = () => {
       celular: currentCliente.celular,
       email: currentCliente.email,
       direccion: currentCliente.direccion,
+    };
+
+    if (editMode && clienteId) {
+      // Incluir el id en la data para PATCH (opcional, pero si quieres mandarlo explícito)
+      clienteData = { id: clienteId, ...clienteData };
+
+      try {
+        const response = await fetch(`${supabaseUrl}/rest/v1/clientes?id=eq.${clienteId}`, {
+          method: 'PATCH',
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=representation',
+          },
+          body: JSON.stringify(clienteData),
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al actualizar cliente en Supabase');
+        }
+
+        const updated = await response.json();
+        setClientes(prev => prev.map(c => (c.id === clienteId ? updated[0] : c)));
+        setModalOpen(false);
+        return;
+      } catch (error) {
+        console.error('Error al actualizar cliente:', error);
+        alert('No se pudo actualizar el cliente.');
+        return;
+      }
+    }
+
+    // Modo creación
+    const newCliente = {
+      ...clienteData,
       fecha_registro: new Date().toISOString().split('T')[0],
     };
 
     try {
-   
       const response = await fetch(`${supabaseUrl}/rest/v1/clientes`, {
         method: 'POST',
         headers: {
           apikey: supabaseKey,
           Authorization: `Bearer ${supabaseKey}`,
           'Content-Type': 'application/json',
-          Prefer: 'return=representation'
+          Prefer: 'return=representation',
         },
-        body: JSON.stringify(newCliente)
+        body: JSON.stringify(newCliente),
       });
 
       if (!response.ok) {
@@ -148,9 +178,24 @@ const Clientes = () => {
 
 
   // Eliminar cliente
-  const deleteCliente = (id) => {
-    if (window.confirm('¿Estás seguro de eliminar este cliente?')) {
-      setClientes(prev => prev.filter(c => c.id !== id));
+  const deleteCliente = async (id) => {
+    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+    const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY
+    const response = await fetch(`${supabaseUrl}/rest/v1/clientes?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      Swal.fire('Error al eliminar', error.message || 'Error desconocido', 'error');
+    } else {
+      Swal.fire('Eliminado', 'El cliente ha sido eliminado correctamente', 'success');
     }
   };
 
@@ -410,7 +455,7 @@ const Clientes = () => {
                 type="button"
                 onClick={saveCliente}
                 className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center"
-               >
+              >
                 <FiSave className="mr-2" /> {editMode ? 'Actualizar' : 'Guardar'} Cliente
               </button>
             </div>

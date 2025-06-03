@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiPlus, FiSearch } from 'react-icons/fi';
 import NavBar from '../NavBar/Navbar';
-import ProyectoHeader from './ProyectoHeader';
-import TabsNavigation from './TabsNavigation';
+import ProyectoHeader from './Gestion/ProyectoHeader';
+import TabsNavigation from './Gestion/TabsNavigation';
 import ActividadesTab from './ActividadesTab';
-import NovedadesTab from './NovedadesTab';
-import ColaboradoresTab from './ColaboradoresTab';
+import NovedadesTab from './Gestion/NovedadesTab';
+import ColaboradoresTab from './Gestion/ColaboradoresTab';
 
 const DetalleProyecto = () => {
   const { id } = useParams();

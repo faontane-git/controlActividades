@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaArrowLeft, FaSave, FaCalendarAlt, FaAlignLeft } from 'react-icons/fa';
@@ -178,12 +178,40 @@ const NewProject = () => {
     cliente: '',
     presupuesto: ''
   });
-
+  const [clientes, setClientes] = useState([]);  // Estado para lista de clientes
   const [errors, setErrors] = useState({
     nombre: '',
     fechaInicio: '',
     fechaFin: ''
   });
+
+  useEffect(() => {
+    // Función para cargar clientes desde Supabase
+    const fetchClientes = async () => {
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+      try {
+        const response = await fetch(`${supabaseUrl}/rest/v1/clientes?select=id,nombre`, {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`
+          }
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          setClientes(data);
+        } else {
+          console.error('Error al obtener clientes:', data);
+        }
+      } catch (error) {
+        console.error('Error en fetch clientes:', error);
+      }
+    };
+
+    fetchClientes();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -226,8 +254,8 @@ const NewProject = () => {
       descripcion: formData.descripcion,
       fechainicio: formData.fechaInicio,
       fechafin: formData.fechaFin,
-      estado: 'Iniciado',  
-      progreso: 0,  
+      estado: 'Iniciado',
+      progreso: 0,
       fecha_creacion: new Date().toISOString(),
       actualizado_en: new Date().toISOString()
     };
@@ -306,7 +334,32 @@ const NewProject = () => {
               <FormGroup>
                 <Label>Cliente</Label>
                 <InputContainer>
-                  <Input type="text" name="cliente" value={formData.cliente} onChange={handleChange} />
+                  <select
+                    name="cliente"
+                    value={formData.cliente}
+                    onChange={handleChange}
+                    style={{
+                      flexGrow: 1,
+                      border: 'none',
+                      background: 'transparent',
+                      padding: '0.5rem 0',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      appearance: 'none',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none',
+                      cursor: 'pointer',
+                      backgroundColor: '#f9fafb',
+                      borderRadius: '6px'
+                    }}
+                  >
+                    <option value="">Seleccione un cliente</option>
+                    {clientes.map((cliente) => (
+                      <option key={cliente.id} value={cliente.id}>
+                        {cliente.nombre}
+                      </option>
+                    ))}
+                  </select>
                 </InputContainer>
               </FormGroup>
               <FormGroup>
