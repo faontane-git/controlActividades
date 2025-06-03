@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { FiFileText, FiPlus, FiTrash2, FiUser, FiDollarSign, FiPercent, FiDownload, FiMapPin, FiCreditCard, FiMail, FiPhone, FiArrowLeft } from 'react-icons/fi';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import logoEmpresa from '../../recursos/logo.png';
-import NavBar from '../NavBar/Navbar';
+import logoEmpresa from '../../../recursos/logo.png';
+import NavBar from '../../NavBar/Navbar';
 
 const GenerarFactura = () => {
   const navigate = useNavigate();
@@ -152,40 +152,65 @@ const GenerarFactura = () => {
 
   const generarPDF = async () => {
     const input = facturaRef.current;
-    const canvas = await html2canvas(input, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF();
-    const imgWidth = 190;
-    const imgHeight = canvas.height * imgWidth / canvas.width;
-    pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-    pdf.save(`factura_${formData.numeroFactura}.pdf`);
-
-    // Guardar en Supabase
+  
     try {
-      const facturaPayload = {
-        numero: formData.numeroFactura.toString(),
-        fecha: formData.fecha,
-        cliente: formData.cliente.nombre,
-        identificacion: formData.cliente.identificacion,
-        direccion: formData.cliente.direccion,
-        telefono: formData.cliente.telefono,
-        email: formData.cliente.email,
-        tipo_identificacion: formData.cliente.tipoIdentificacion,
-        forma_pago: formData.formaPago,
-        observaciones: formData.observaciones,
-        productos: JSON.stringify(formData.productos),
-        subtotal: calcularTotal(),
-        iva: parseFloat(calcularIVA()),
-        total: parseFloat(calcularTotal()) + parseFloat(calcularIVA())
-      };
-      await guardarFacturaEnSupabase(facturaPayload);
-      alert('✅ Factura guardada correctamente en la base de datos.');
+      const canvas = await html2canvas(input, {
+        scale: 2,
+        useCORS: true
+      });
+  
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'p', // vertical
+        unit: 'mm',
+        format: 'a4'
+      });
+  
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+  
+      const imgProps = pdf.getImageProperties(imgData);
+      const imgWidth = pageWidth - 20; // margenes laterales
+      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+  
+      let position = 10; // margen superior inicial
+      let remainingHeight = imgHeight;
+  
+      // Si la imagen cabe en una sola página
+      if (imgHeight <= pageHeight - 20) {
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      } else {
+        // Divide en múltiples páginas
+        let y = 0;
+        while (remainingHeight > 0) {
+          pdf.addImage(
+            imgData,
+            'PNG',
+            10,
+            position,
+            imgWidth,
+            imgHeight,
+            undefined,
+            'FAST',
+            0,
+            y
+          );
+          remainingHeight -= pageHeight - 20;
+          y += pageHeight * (imgProps.width / imgWidth); // avanzar en pixeles de imagen
+          if (remainingHeight > 0) pdf.addPage();
+        }
+      }
+  
+      pdf.save(`factura_${formData.numeroFactura}.pdf`);
+  
+      // Guardar en Supabase
+   
     } catch (err) {
-      console.error('❌ Error al guardar la factura:', err);
-      alert('❌ Hubo un error al guardar la factura.');
+      console.error('❌ Error al generar o guardar la factura:', err);
+      alert('❌ Hubo un error al generar la factura.');
     }
   };
-
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />

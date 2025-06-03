@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiPackage, FiPlus, FiTrash2, FiLogOut, FiDollarSign, FiTag, FiList, FiArrowLeft } from 'react-icons/fi';
-import NavBar from '../NavBar/Navbar';
+import NavBar from '../../NavBar/Navbar';
 
 const CrearProductos = () => {
   const navigate = useNavigate();

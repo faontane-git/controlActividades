@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from '../src/pages/Home/HomePage';
 import ActividadesPage from './pages/Actividades/ActividadesPage';
 import FacturacionPage from './pages/Facturacion';
-import GenerarFactura from './pages/Facturacion/factura';
+import GenerarFactura from './pages/Facturacion/Facturas/factura';
 import VerHistorico from './pages/Facturacion/historico';
-import CrearProductos from './pages/Facturacion/productos';
+import CrearProductos from './pages/Facturacion/Productos/productos';
 import LandingPage from './pages/LandingPage/LandingPage';
 import LoginPage from './pages/Login/Login';
 import MainPage from './pages/Main/main';
@@ -25,6 +25,8 @@ import CotizacionesList from './pages/Cotizar/CotizacionesList';
 import CotizacionDetalle from './pages/Cotizar/CotizacionDetalle';
 import CotizacionMenu from './pages/Cotizar/CotizacionMenu';
 import PlantillasCotizacion from './pages/Cotizar/PlantillasCotizacion';
+import FacturasGeneradas from './pages/Facturacion/Facturas/FacturasGeneradas';
+import ProductosCreados from './pages/Facturacion/Productos/ProductosCreados';
 
 function App() {
   return (
@@ -38,7 +40,7 @@ function App() {
 
         {/* Rutas de Personal */}
         <Route path="/personal" element={<Personal />} />
- 
+
         {/* Rutas de Proyectos */}
         <Route path="/proyectos" element={<Proyectos />} />
         <Route path="/proyectos/nuevo" element={<NewProject />} />
@@ -46,8 +48,9 @@ function App() {
 
         {/* Rutas de Facturación */}
         <Route path="/facturador" element={<FacturacionPage />} />
-        <Route path="/factura" element={<GenerarFactura />} />
-        <Route path="/productos" element={<CrearProductos />} />
+        <Route path="/factura" element={<FacturasGeneradas />} />
+        <Route path="/factura/nueva" element={<GenerarFactura />} />
+        <Route path="/productos" element={<ProductosCreados />} />
         <Route path="/historico" element={<VerHistorico />} />
         {/* Rutas de Facturación */}
         <Route path="/clientes" element={<Clientes />} />
