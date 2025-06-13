@@ -11,6 +11,39 @@ const CotizacionesList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  useEffect(() => {
+    const fetchCotizaciones2 = async () => {
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+      try {
+        // Consulta cotizaciones con JOIN al cliente
+        const response = await fetch(
+          `${supabaseUrl}/rest/v1/cotizaciones?select=id,fecha,validez,total,cliente_id,clientes(nombre)`,
+          {
+            headers: {
+              apikey: supabaseKey,
+              Authorization: `Bearer ${supabaseKey}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Error al obtener cotizaciones');
+        }
+
+        const data = await response.json();
+        console.log(data);
+       } catch (error) {
+        console.error('Fetch error:', error);
+      }
+    };
+
+    fetchCotizaciones2();
+  }, []);
+
+
   // Datos de ejemplo (en un caso real, estos vendrían de una API)
   useEffect(() => {
     const fetchCotizaciones = () => {
@@ -110,10 +143,10 @@ const CotizacionesList = () => {
                         <td className="px-6 py-4 whitespace-nowrap">${cotizacion.total}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 text-xs rounded-full ${cotizacion.estado === 'Aprobada'
-                              ? 'bg-green-100 text-green-800'
-                              : cotizacion.estado === 'Rechazada'
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-yellow-100 text-yellow-800'
+                            ? 'bg-green-100 text-green-800'
+                            : cotizacion.estado === 'Rechazada'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
                             }`}>
                             {cotizacion.estado}
                           </span>

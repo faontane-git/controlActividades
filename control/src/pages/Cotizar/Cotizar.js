@@ -21,14 +21,38 @@ const Cotizar = () => {
   });
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fecthClientes = async () => {
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+      try {
+        const response = await fetch(`${supabaseUrl}/rest/v1/clientes?select=id,nombre`, {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al obtener empleados');
+        }
+
+        const data = await response.json();
+        setClientes(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Fetch error:', error);
+      }
+    };
+
+    fecthClientes();
+  }, []);
+
   // Datos de ejemplo
   useEffect(() => {
     setTimeout(() => {
-      setClientes([
-        { id: 1, nombre: 'Tech Solutions SA', contacto: 'Juan Pérez' },
-        { id: 2, nombre: 'Constructora XYZ', contacto: 'María González' }
-      ]);
-
       setProductos([
         { id: 1, codigo: 'SER-001', nombre: 'Servicio de desarrollo web', precio: 1500 },
         { id: 2, codigo: 'SER-002', nombre: 'Consultoría SEO', precio: 800 },
@@ -79,12 +103,66 @@ const Cotizar = () => {
     }, 0);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Cotización enviada:', cotizacion);
-    alert('Cotización guardada exitosamente');
-    navigate('/cotizaciones');
+  
+    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+    const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+  
+    try {
+      // Guardar cotización
+      const response = await fetch(`${supabaseUrl}/rest/v1/cotizaciones`, {
+        method: 'POST',
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation'
+        },
+        body: JSON.stringify({
+          cliente_id: cotizacion.clienteId,
+          fecha: cotizacion.fecha,
+          validez: cotizacion.validez,
+          notas: cotizacion.notas,
+          subtotal: calcularTotal(),
+          iva: calcularTotal() * 0.19,
+          total: calcularTotal() * 1.19
+        })
+      });
+  
+      if (!response.ok) throw new Error('Error al guardar cotización');
+  
+      const [nuevaCotizacion] = await response.json();
+  
+      // Guardar ítems de cotización
+      const itemsConId = cotizacion.items.map(item => ({
+        cotizacion_id: nuevaCotizacion.id,
+        producto_id: item.productoId,
+        descripcion: item.descripcion,
+        cantidad: item.cantidad,
+        precio_unitario: item.precioUnitario
+      }));
+  
+      const itemsRes = await fetch(`${supabaseUrl}/rest/v1/cotizacion_items`, {
+        method: 'POST',
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(itemsConId)
+      });
+  
+      if (!itemsRes.ok) throw new Error('Error al guardar ítems');
+  
+      alert('Cotización guardada exitosamente');
+      navigate('/cotizaciones');
+    } catch (error) {
+      console.error('Error al guardar cotización:', error);
+      alert('Hubo un error al guardar la cotización');
+    }
   };
+  
 
   if (loading) {
     return (
@@ -116,7 +194,7 @@ const Cotizar = () => {
                   <option value="">Seleccione un cliente</option>
                   {clientes.map(cliente => (
                     <option key={cliente.id} value={cliente.id}>
-                      {cliente.nombre} - {cliente.contacto}
+                      {cliente.nombre}
                     </option>
                   ))}
                 </select>
