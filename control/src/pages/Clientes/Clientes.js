@@ -119,26 +119,28 @@ const Clientes = () => {
       clienteData = { id: clienteId, ...clienteData };
 
       try {
-        const response = await fetch(`${supabaseUrl}/rest/v1/clientes?id=eq.${clienteId}`, {
-          method: 'PATCH',
+        const response = await fetch(`${supabaseUrl}/rest/v1/clientes`, {
+          method: 'POST',
           headers: {
             apikey: supabaseKey,
             Authorization: `Bearer ${supabaseKey}`,
             'Content-Type': 'application/json',
             Prefer: 'return=representation',
           },
-          body: JSON.stringify(clienteData),
+          body: JSON.stringify(newCliente),
         });
 
         if (!response.ok) {
-          throw new Error('Error al actualizar cliente en Supabase');
+          throw new Error('Error al guardar cliente en Supabase');
         }
 
-        const updated = await response.json();
-        setClientes(prev => prev.map(c => (c.id === clienteId ? updated[0] : c)));
+        const inserted = await response.json();
+        setClientes(prev => [...prev, ...inserted]);
         setModalOpen(false);
-        return;
-      } catch (error) {
+
+        Swal.fire('Guardado', 'El cliente ha sido guardado con éxito', 'success');
+      }
+      catch (error) {
         console.error('Error al actualizar cliente:', error);
         alert('No se pudo actualizar el cliente.');
         return;
@@ -170,6 +172,8 @@ const Clientes = () => {
       const inserted = await response.json();
       setClientes(prev => [...prev, ...inserted]);
       setModalOpen(false);
+      Swal.fire('Guardado', 'El cliente ha sido guardado con éxito', 'success');
+
     } catch (error) {
       console.error('Error al guardar cliente:', error);
       alert('No se pudo guardar el cliente.');
@@ -196,6 +200,7 @@ const Clientes = () => {
       Swal.fire('Error al eliminar', error.message || 'Error desconocido', 'error');
     } else {
       Swal.fire('Eliminado', 'El cliente ha sido eliminado correctamente', 'success');
+      setClientes(prev => prev.filter(c => c.id !== id));
     }
   };
 
@@ -229,7 +234,7 @@ const Clientes = () => {
             </div>
             <input
               type="text"
-              placeholder="Buscar clientes..."
+              placeholder="Buscar clientes"
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full max-w-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -395,15 +400,25 @@ const Clientes = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Cédula*</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {currentCliente.razon === 'Ruc' ? 'RUC*' : 'Cédula*'}
+                  </label>
                   <input
                     type="text"
                     name="identificacion"
                     value={currentCliente.identificacion}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, ''); // Solo números
+                      const maxLength = currentCliente.razon === 'Ruc' ? 13 : 10;
+                      if (value.length <= maxLength) {
+                        setCurrentCliente(prev => ({ ...prev, identificacion: value }));
+                      }
+                    }}
+                    maxLength={currentCliente.razon === 'Ruc' ? 13 : 10}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     required
                   />
+
                 </div>
 
                 <div>
@@ -412,7 +427,13 @@ const Clientes = () => {
                     type="tel"
                     name="celular"
                     value={currentCliente.celular}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, ''); // Solo números
+                      if (value.length <= 10) {
+                        setCurrentCliente(prev => ({ ...prev, celular: value }));
+                      }
+                    }}
+                    maxLength={10}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     required
                   />
