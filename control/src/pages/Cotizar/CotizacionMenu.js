@@ -18,12 +18,6 @@ const CotizacionMenu = () => {
       description: "Ver todas las cotizaciones realizadas",
       icon: <FiList className="text-3xl mb-3 text-indigo-600" />,
       action: () => navigate('/cotizaciones')
-    },
-    {
-      title: "Usar Plantilla",
-      description: "Seleccionar un modelo predefinido",
-      icon: <FiCopy className="text-3xl mb-3 text-indigo-600" />,
-      action: () => navigate('/cotizar/plantillas')
     }
   ];
 

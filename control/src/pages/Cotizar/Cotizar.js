@@ -52,15 +52,30 @@ const Cotizar = () => {
 
   // Datos de ejemplo
   useEffect(() => {
-    setTimeout(() => {
-      setProductos([
-        { id: 1, codigo: 'SER-001', nombre: 'Servicio de desarrollo web', precio: 1500 },
-        { id: 2, codigo: 'SER-002', nombre: 'Consultoría SEO', precio: 800 },
-        { id: 3, codigo: 'HAR-001', nombre: 'Servidor HP ProLiant', precio: 2500 }
-      ]);
+    const fetchProductos = async () => {
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
-      setLoading(false);
-    }, 1000);
+      try {
+        const res = await fetch(`${supabaseUrl}/rest/v1/productos?select=id,codigo,nombre,precio`, {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!res.ok) throw new Error('Error al obtener productos');
+
+        const data = await res.json();
+        setProductos(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error al cargar productos:', error);
+      }
+    };
+
+    fetchProductos();
   }, []);
 
   const handleChange = (e) => {
@@ -105,10 +120,10 @@ const Cotizar = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
     const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
-  
+
     try {
       // Guardar cotización
       const response = await fetch(`${supabaseUrl}/rest/v1/cotizaciones`, {
@@ -129,11 +144,11 @@ const Cotizar = () => {
           total: calcularTotal() * 1.19
         })
       });
-  
+
       if (!response.ok) throw new Error('Error al guardar cotización');
-  
+
       const [nuevaCotizacion] = await response.json();
-  
+
       // Guardar ítems de cotización
       const itemsConId = cotizacion.items.map(item => ({
         cotizacion_id: nuevaCotizacion.id,
@@ -142,7 +157,7 @@ const Cotizar = () => {
         cantidad: item.cantidad,
         precio_unitario: item.precioUnitario
       }));
-  
+
       const itemsRes = await fetch(`${supabaseUrl}/rest/v1/cotizacion_items`, {
         method: 'POST',
         headers: {
@@ -152,9 +167,9 @@ const Cotizar = () => {
         },
         body: JSON.stringify(itemsConId)
       });
-  
+
       if (!itemsRes.ok) throw new Error('Error al guardar ítems');
-  
+
       alert('Cotización guardada exitosamente');
       navigate('/cotizaciones');
     } catch (error) {
@@ -162,7 +177,7 @@ const Cotizar = () => {
       alert('Hubo un error al guardar la cotización');
     }
   };
-  
+
 
   if (loading) {
     return (
@@ -356,16 +371,10 @@ const Cotizar = () => {
             <div className="flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => navigate('/cotizaciones')}
+                onClick={() => navigate('/cotizar')}
                 className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 Cancelar
-              </button>
-              <button
-                type="button"
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center"
-              >
-                <FiPrinter className="mr-2" /> Imprimir
               </button>
               <button
                 type="submit"

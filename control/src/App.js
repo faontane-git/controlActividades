@@ -23,8 +23,6 @@ import Clientes from './pages/Clientes/Clientes';
 import Cotizar from './pages/Cotizar/Cotizar';
 import CotizacionesList from './pages/Cotizar/CotizacionesList';
 import CotizacionDetalle from './pages/Cotizar/CotizacionDetalle';
-import CotizacionMenu from './pages/Cotizar/CotizacionMenu';
-import PlantillasCotizacion from './pages/Cotizar/PlantillasCotizacion';
 import FacturasGeneradas from './pages/Facturacion/Facturas/FacturasGeneradas';
 import ProductosCreados from './pages/Facturacion/Productos/ProductosCreados';
 
@@ -51,14 +49,13 @@ function App() {
         <Route path="/factura" element={<FacturasGeneradas />} />
         <Route path="/factura/nueva" element={<GenerarFactura />} />
         <Route path="/productos" element={<ProductosCreados />} />
+        <Route path="/productos/nuevo" element={<CrearProductos />} />
         <Route path="/historico" element={<VerHistorico />} />
         {/* Rutas de Facturación */}
         <Route path="/clientes" element={<Clientes />} />
         {/* Rutas de Cotizar */}
-        <Route path="/cotizar" element={<CotizacionMenu />} />
-        <Route path="/cotizar/nueva" element={<Cotizar />} />
-        <Route path="/cotizar/plantillas" element={<PlantillasCotizacion />} />
-        <Route path="/cotizaciones" element={<CotizacionesList />} />
+        <Route path="/cotizar" element={<CotizacionesList />} />
+        <Route path="/cotizar/cotizacion" element={<Cotizar />} />
         <Route path="/cotizaciones/:id" element={<CotizacionDetalle />} />
 
         {/* Otras rutas */}

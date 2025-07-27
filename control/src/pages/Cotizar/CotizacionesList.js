@@ -34,8 +34,10 @@ const CotizacionesList = () => {
         }
 
         const data = await response.json();
+        setCotizaciones(data);
+        setLoading(false);
         console.log(data);
-       } catch (error) {
+      } catch (error) {
         console.error('Fetch error:', error);
       }
     };
@@ -44,37 +46,10 @@ const CotizacionesList = () => {
   }, []);
 
 
-  // Datos de ejemplo (en un caso real, estos vendrían de una API)
-  useEffect(() => {
-    const fetchCotizaciones = () => {
-      setTimeout(() => {
-        const mockData = Array.from({ length: 25 }, (_, i) => ({
-          id: i + 1,
-          numero: `COT-${String(i + 1).padStart(4, '0')}`,
-          fecha: new Date(Date.now() - i * 86400000).toISOString().split('T')[0],
-          cliente: `Cliente ${i % 5 === 0 ? 'A' : i % 3 === 0 ? 'B' : 'C'}`,
-          total: (Math.random() * 5000 + 500).toFixed(2),
-          estado: i % 4 === 0 ? 'Aprobada' : i % 3 === 0 ? 'Rechazada' : 'Pendiente',
-          validez: 7 + (i % 10)
-        }));
-        setCotizaciones(mockData);
-        setLoading(false);
-      }, 800);
-    };
-
-    fetchCotizaciones();
-  }, []);
-
-  const filteredCotizaciones = cotizaciones.filter(cotizacion =>
-    cotizacion.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cotizacion.cliente.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   // Paginación
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredCotizaciones.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredCotizaciones.length / itemsPerPage);
 
   const handleViewDetails = (id) => {
     navigate(`/cotizaciones/${id}`);
@@ -96,7 +71,7 @@ const CotizacionesList = () => {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-800">Histórico de Cotizaciones</h1>
             <button
-              onClick={() => navigate('/cotizar')}
+              onClick={() => navigate('/cotizar/cotizacion')}
               className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
             >
               <FiPlus className="mr-2" /> Nueva Cotización
@@ -120,40 +95,30 @@ const CotizacionesList = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Id</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Válido hasta</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {currentItems.length > 0 ? (
-                  currentItems.map((cotizacion) => {
+
+                {cotizaciones.length > 0 ? (
+                  cotizaciones.map((cotizacion) => {
                     const fechaValidez = new Date(cotizacion.fecha);
                     fechaValidez.setDate(fechaValidez.getDate() + cotizacion.validez);
 
                     return (
                       <tr key={cotizacion.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap font-medium">{cotizacion.numero}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{cotizacion.id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap font-medium">{cotizacion.clientes.nombre}</td>
                         <td className="px-6 py-4 whitespace-nowrap">{cotizacion.fecha}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{cotizacion.cliente}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{cotizacion.validez}</td>
                         <td className="px-6 py-4 whitespace-nowrap">${cotizacion.total}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs rounded-full ${cotizacion.estado === 'Aprobada'
-                            ? 'bg-green-100 text-green-800'
-                            : cotizacion.estado === 'Rechazada'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                            {cotizacion.estado}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {fechaValidez.toISOString().split('T')[0]}
-                        </td>
+
+
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button
                             onClick={() => handleViewDetails(cotizacion.id)}
@@ -175,42 +140,12 @@ const CotizacionesList = () => {
                     </td>
                   </tr>
                 )}
+
               </tbody>
             </table>
           </div>
 
-          {filteredCotizaciones.length > 0 && (
-            <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-gray-700">
-                Mostrando {indexOfFirstItem + 1} a {Math.min(indexOfLastItem, filteredCotizaciones.length)} de {filteredCotizaciones.length} cotizaciones
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className={`px-3 py-1 rounded-md ${currentPage === 1 ? 'bg-gray-100 text-gray-400' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                >
-                  <FiChevronLeft />
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`px-3 py-1 rounded-md ${currentPage === i + 1 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className={`px-3 py-1 rounded-md ${currentPage === totalPages ? 'bg-gray-100 text-gray-400' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                >
-                  <FiChevronRight />
-                </button>
-              </div>
-            </div>
-          )}
+
         </div>
       </div>
     </div>
