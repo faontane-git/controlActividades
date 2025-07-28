@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FiPrinter, FiArrowLeft } from 'react-icons/fi';
 import NavBar from '../NavBar/Navbar';
+import { useRef } from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const CotizacionDetalle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [cotizacion, setCotizacion] = useState(null);
   const [loading, setLoading] = useState(true);
+  const printRef = useRef(null);
 
   useEffect(() => {
     // Simular carga de datos
@@ -31,6 +35,22 @@ const CotizacionDetalle = () => {
     }, 500);
   }, [id]);
 
+
+  const handlePrint = async () => {
+    const element = printRef.current;
+    const canvas = await html2canvas(element);
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save("cotizacion.pdf");
+  };
+
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -43,7 +63,7 @@ const CotizacionDetalle = () => {
     <div className="min-h-screen bg-gray-50">
       <NavBar />
       <div className="pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-8">
-        <div className="bg-white shadow rounded-lg p-6">
+        <div ref={printRef} className="bg-white shadow rounded-lg p-6">
           <div className="flex justify-between items-start mb-6">
             <button
               onClick={() => navigate('/cotizaciones')}
@@ -53,7 +73,10 @@ const CotizacionDetalle = () => {
             </button>
 
             <div className="flex space-x-3">
-              <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+              <button
+                onClick={handlePrint}
+                className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              >
                 <FiPrinter className="mr-2" /> Imprimir
               </button>
             </div>
@@ -68,8 +91,8 @@ const CotizacionDetalle = () => {
                   <p><span className="font-medium">Fecha:</span> {cotizacion.fecha}</p>
                   <p><span className="font-medium">Estado:</span>
                     <span className={`ml-2 px-2 py-1 text-xs rounded-full ${cotizacion.estado === 'Aprobada' ? 'bg-green-100 text-green-800' :
-                        cotizacion.estado === 'Rechazada' ? 'bg-red-100 text-red-800' :
-                          'bg-yellow-100 text-yellow-800'
+                      cotizacion.estado === 'Rechazada' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
                       }`}>
                       {cotizacion.estado}
                     </span>

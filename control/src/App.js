@@ -1,18 +1,13 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from '../src/pages/Home/HomePage';
-import ActividadesPage from './pages/Actividades/ActividadesPage';
-import FacturacionPage from './pages/Facturacion';
 import GenerarFactura from './pages/Facturacion/Facturas/factura';
 import VerHistorico from './pages/Facturacion/historico';
 import CrearProductos from './pages/Facturacion/Productos/productos';
-import LandingPage from './pages/LandingPage/LandingPage';
 import LoginPage from './pages/Login/Login';
 import MainPage from './pages/Main/main';
 import PerfilPage from './pages/Cuenta/PerfilPage';
 import ConfiguracionPage from './pages/Cuenta/ConfiguracionPage';
 import CertificadosPage from './pages/Certificados/Certificados';
-import MenuPage from './pages/Main/MenuPage';
 import Proyectos from './pages/Proyectos';
 import DetalleProyecto from './pages/Proyectos/DetalleProyecto';
 import SoftwareBoard from './pages/Proyectos';
@@ -45,7 +40,7 @@ function App() {
         <Route path="/proyectos/:id" element={<DetalleProyecto />} />
 
         {/* Rutas de Facturación */}
-        <Route path="/facturador" element={<FacturacionPage />} />
+        <Route path="/facturador" element={<FacturasGeneradas />} />
         <Route path="/factura" element={<FacturasGeneradas />} />
         <Route path="/factura/nueva" element={<GenerarFactura />} />
         <Route path="/productos" element={<ProductosCreados />} />

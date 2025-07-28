@@ -15,7 +15,7 @@ import {
   FiFileText,
   FiUsers,
   FiBriefcase,
-  FiDollarSign // Nuevo ícono para Cotizar
+  FiDollarSign
 } from 'react-icons/fi';
 
 const NavBar = () => {
@@ -45,7 +45,6 @@ const NavBar = () => {
           onClick={() => navigate('/main')}
         />
 
-
         <div className="w-full max-w-7xl mx-auto flex items-center justify-between px-2">
           <div className="flex items-center gap-1 pl-2">
           </div>
@@ -71,7 +70,7 @@ const NavBar = () => {
         </div>
       </nav>
 
-      {/* Menú lateral con opción de Cotizar */}
+      {/* Menú lateral con opción de Productos */}
       <div className={`fixed top-0 left-0 h-full w-64 bg-white shadow-md transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform z-50`}>
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-lg font-semibold">Menú</h2>
@@ -88,22 +87,20 @@ const NavBar = () => {
             <FiUsers className="mr-3" /> Administrar Personal
           </button>
 
-          <button
-            onClick={() => navigate('/clientes')}
-            className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg"
-          >
+          <button onClick={() => navigate('/clientes')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiBriefcase className="mr-3" /> Clientes
+          </button>
+
+          {/* Nueva opción: Productos */}
+          <button onClick={() => navigate('/productos')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
+            <FiActivity className="mr-3" /> Productos
           </button>
 
           <button onClick={() => navigate('/proyectos')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiFolder className="mr-3" /> Proyectos
           </button>
 
-          {/* Nueva opción de Cotizar */}
-          <button
-            onClick={() => navigate('/cotizar')}
-            className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg"
-          >
+          <button onClick={() => navigate('/cotizar')} className="flex items-center w-full p-3 text-gray-700 hover:bg-gray-100 rounded-lg">
             <FiDollarSign className="mr-3" /> Cotizar
           </button>
 
