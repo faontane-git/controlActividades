@@ -112,32 +112,6 @@ const DetalleProyecto = () => {
             <span className="font-medium">Volver a proyectos</span>
           </button>
 
-          {/* Fechas y estado compacto */}
-          <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
-            <span className="hidden sm:inline-flex items-center gap-1">
-              <span className="font-medium">Inicio:</span>
-              <span>{proyecto.fechaInicio}</span>
-            </span>
-            
-            <span className="hidden sm:inline-flex items-center gap-1">
-              <span className="font-medium">Fin:</span>
-              <span>{proyecto.fechaFinEstimada}</span>
-            </span>
-            
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              proyecto.estado === 'completado' 
-                ? 'bg-green-100 text-green-800' 
-                : proyecto.estado === 'en-progreso' 
-                  ? 'bg-blue-100 text-blue-800' 
-                  : 'bg-yellow-100 text-yellow-800'
-            }`}>
-              {proyecto.estado === 'completado' 
-                ? '✓ Completado' 
-                : proyecto.estado === 'en-progreso' 
-                  ? '⌛ En progreso' 
-                  : '⏳ Pendiente'}
-            </span>
-          </div>
         </div>
 
         {/* Encabezado del proyecto */}
