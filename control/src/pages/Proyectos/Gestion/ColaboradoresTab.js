@@ -3,9 +3,10 @@ import { FiUsers, FiPlus, FiTrash2 } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 import ModalColaborador from './ModalColaborador';
 
-const ColaboradoresTab = ({ colaboradores, setProyecto }) => {
+const ColaboradoresTab = ({ colaboradores, setProyecto, proyecto }) => {
   const [mostrarModalColab, setMostrarModalColab] = useState(false);
   const [nuevoColaborador, setNuevoColaborador] = useState({
+    empleado_id: '',
     nombre: '',
     apellido: '',
     email: '',
@@ -17,39 +18,71 @@ const ColaboradoresTab = ({ colaboradores, setProyecto }) => {
     setNuevoColaborador(prev => ({ ...prev, [name]: value }));
   };
 
-  const agregarColaborador = () => {
-    if (!nuevoColaborador.nombre || !nuevoColaborador.email) {
+  const agregarColaborador = async () => {
+    if (!nuevoColaborador.empleado_id) {
       Swal.fire({
-        title: 'Campos requeridos',
-        text: 'Nombre y email son obligatorios',
+        title: 'Empleado requerido',
+        text: 'Debes seleccionar un empleado',
         icon: 'warning',
         confirmButtonColor: '#4f46e5'
       });
       return;
     }
 
-    const colaborador = {
-      id: Math.max(0, ...colaboradores.map(c => c.id)) + 1,
-      ...nuevoColaborador
-    };
+    try {
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+      const headers = {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json'
+      };
 
-    setProyecto(prev => ({
-      ...prev,
-      colaboradores: [...prev.colaboradores, colaborador]
-    }));
+      const body = JSON.stringify({
+        proyecto_id: proyecto.id,
+        empleado_id: nuevoColaborador.empleado_id,
+        asignado_en: new Date().toISOString()
+      });
 
-    setNuevoColaborador({ nombre: '', apellido: '', email: '', rol: '' });
-    setMostrarModalColab(false);
-    
-    Swal.fire({
-      title: '¡Agregado!',
-      text: 'Colaborador añadido correctamente',
-      icon: 'success',
-      confirmButtonColor: '#4f46e5'
-    });
+      const res = await fetch(`${supabaseUrl}/rest/v1/proyecto_empleados`, {
+        method: 'POST',
+        headers,
+        body
+      });
+
+      if (!res.ok) throw new Error('Error al guardar colaborador');
+
+      const nuevo = {
+        id: nuevoColaborador.empleado_id,
+        nombre: nuevoColaborador.nombre,
+        apellido: nuevoColaborador.apellido,
+        email: nuevoColaborador.email,
+        rol: nuevoColaborador.rol,
+        avatar: `${nuevoColaborador.nombre[0]}${nuevoColaborador.apellido[0]}`,
+        horasAsignadas: 0
+      };
+
+      setProyecto(prev => ({
+        ...prev,
+        colaboradores: [...prev.colaboradores, nuevo]
+      }));
+
+      setNuevoColaborador({ empleado_id: '', nombre: '', apellido: '', email: '', rol: '' });
+      setMostrarModalColab(false);
+
+      Swal.fire({
+        title: '¡Agregado!',
+        text: 'Colaborador añadido correctamente',
+        icon: 'success',
+        confirmButtonColor: '#4f46e5'
+      });
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Error', 'No se pudo guardar el colaborador', 'error');
+    }
   };
 
-  const eliminarColaborador = (id) => {
+  const eliminarColaborador = async (id) => {
     Swal.fire({
       title: '¿Eliminar colaborador?',
       text: 'Esta acción no se puede deshacer',
@@ -59,18 +92,53 @@ const ColaboradoresTab = ({ colaboradores, setProyecto }) => {
       cancelButtonColor: '#ef4444',
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar'
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        setProyecto(prev => ({
-          ...prev,
-          colaboradores: prev.colaboradores.filter(c => c.id !== id)
-        }));
+        try {
+          const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+          const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+  
+          const headers = {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+          };
+  
+          // Eliminar de Supabase
+          const response = await fetch(`${supabaseUrl}/rest/v1/proyecto_empleados?proyecto_id=eq.${proyecto.id}&empleado_id=eq.${id}`, {
+            method: 'DELETE',
+            headers,
+          });
+  
+          if (!response.ok) throw new Error('Error al eliminar colaborador en Supabase');
+  
+          // Actualizar estado local
+          setProyecto(prev => ({
+            ...prev,
+            colaboradores: prev.colaboradores.filter(c => c.id !== id)
+          }));
+  
+          Swal.fire({
+            title: '¡Eliminado!',
+            text: 'Colaborador eliminado correctamente',
+            icon: 'success',
+            confirmButtonColor: '#4f46e5'
+          });
+        } catch (error) {
+          console.error("Error eliminando colaborador:", error);
+          Swal.fire({
+            title: 'Error',
+            text: 'No se pudo eliminar el colaborador',
+            icon: 'error',
+            confirmButtonColor: '#4f46e5'
+          });
+        }
       }
     });
   };
+  
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-800 flex items-center">
           <FiUsers className="mr-2" /> Equipo de Trabajo
@@ -82,7 +150,7 @@ const ColaboradoresTab = ({ colaboradores, setProyecto }) => {
           <FiPlus className="mr-2" /> Agregar
         </button>
       </div>
-      
+
       {mostrarModalColab && (
         <ModalColaborador
           nuevoColaborador={nuevoColaborador}
@@ -91,7 +159,7 @@ const ColaboradoresTab = ({ colaboradores, setProyecto }) => {
           setMostrarModalColab={setMostrarModalColab}
         />
       )}
-      
+
       {colaboradores.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {colaboradores.map(colaborador => (

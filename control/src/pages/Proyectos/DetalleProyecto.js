@@ -15,78 +15,84 @@ const DetalleProyecto = () => {
   const [proyecto, setProyecto] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+ 
 
-  // Datos de ejemplo
-  useEffect(() => {
-    setTimeout(() => {
+useEffect(() => {
+  const fetchProyecto = async () => {
+    try {
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+      const headers = {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+      };
+
+      // Obtener proyecto
+      const proyectoRes = await fetch(`${supabaseUrl}/rest/v1/proyectos?id=eq.${id}&select=*`, { headers });
+      const proyectoData = await proyectoRes.json();
+      const proyecto = proyectoData[0];
+
+      // Obtener colaboradores
+      const colaboradoresRes = await fetch(`${supabaseUrl}/rest/v1/proyecto_empleados?proyecto_id=eq.${id}&select=empleado_id(id,nombres,apellidos,email)`, { headers });
+      const colaboradoresData = await colaboradoresRes.json();
+
+      const colaboradores = colaboradoresData.map((item) => ({
+        id: item.empleado_id.id,
+        nombre: item.empleado_id.nombres,
+        apellido: item.empleado_id.apellidos,
+        email: item.empleado_id.email,
+        rol: '', // lo puedes hacer editable si lo agregas al modelo
+        avatar: `${item.empleado_id.nombres[0] ?? ''}${item.empleado_id.apellidos?.[0] ?? ''}`,
+        horasAsignadas: 0,
+      }));
+
+      // Obtener actividades
+      const actividadesRes = await fetch(`${supabaseUrl}/rest/v1/actividades?proyecto_id=eq.${id}&select=*`, { headers });
+      const actividadesData = await actividadesRes.json();
+
+      const actividades = actividadesData.map((a) => ({
+        id: a.id,
+        titulo: a.nombre,
+        descripcion: a.descripcion,
+        estado: "pendiente", // puedes ajustar si hay campo estado
+        fecha_inicio: a.fecha_inicio,
+        fecha_fin: a.fecha_fin,
+        responsable: '', // puedes completar si agregas asignación
+        prioridad: 'media', // o lógica según condiciones
+      }));
+
+      // Obtener novedades
+      const novedadesRes = await fetch(`${supabaseUrl}/rest/v1/novedades?proyecto_id=eq.${id}&select=*`, { headers });
+      const novedadesData = await novedadesRes.json();
+
+      const novedades = novedadesData.map((n) => ({
+        id: n.id,
+        titulo: n.tipo,
+        tipo: n.tipo,
+        fecha: n.fecha,
+        descripcion: n.descripcion,
+        criticidad: 'media', // puedes ajustar si agregas campo
+      }));
+
+      // Setear todo el proyecto
       setProyecto({
-        nombre: "Sistema de Gestión Documental",
-        descripcion: "Implementación de solución para gestión electrónica de documentos con integración a sistemas legacy y firma digital avanzada.",
-        estado: "en-progreso",
-        fechaInicio: "2023-05-01",
-        fechaFinEstimada: "2023-11-30",
-        actividades: [
-          {
-            id: 1,
-            titulo: "Análisis de requerimientos",
-            estado: "completado",
-            fecha_inicio: "2023-05-01",
-            fecha_fin: "2023-05-10",
-            responsable: "Ana Martínez",
-            prioridad: "alta"
-          },
-          {
-            id: 2,
-            titulo: "Diseño de arquitectura",
-            estado: "en-progreso",
-            fecha_inicio: "2023-05-11",
-            fecha_fin: "2023-06-15",
-            responsable: "Carlos Rodríguez",
-            prioridad: "media"
-          }
-        ],
-        novedades: [
-          {
-            id: 1,
-            titulo: "Retraso en entrega de servidores",
-            tipo: "riesgo",
-            fecha: "2023-05-15",
-            descripcion: "El proveedor informó retraso de 3 días en la entrega de los servidores para el ambiente de pruebas",
-            criticidad: "alta"
-          },
-          {
-            id: 2,
-            titulo: "Nuevo requerimiento de cliente",
-            tipo: "cambio",
-            fecha: "2023-05-18",
-            descripcion: "El cliente solicitó integración con sistema de facturación electrónica",
-            criticidad: "media"
-          }
-        ],
-        colaboradores: [
-          {
-            id: 1,
-            nombre: "Ana",
-            apellido: "Martínez",
-            email: "ana.martinez@empresa.com",
-            rol: "Líder de proyecto",
-            avatar: "AM",
-            horasAsignadas: 40
-          },
-          {
-            id: 2,
-            nombre: "Carlos",
-            apellido: "Rodríguez",
-            email: "carlos@empresa.com",
-            rol: "Desarrollador Frontend",
-            avatar: "CR",
-            horasAsignadas: 30
-          }
-        ]
+        ...proyecto,
+        colaboradores,
+        actividades,
+        novedades,
       });
+
+    } catch (error) {
+      console.error("Error cargando datos del proyecto", error);
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, [id]);
+    }
+  };
+
+  fetchProyecto();
+}, [id]);
+
 
   if (loading) {
     return (
@@ -159,7 +165,7 @@ const DetalleProyecto = () => {
             <ColaboradoresTab
               colaboradores={proyecto.colaboradores}
               setProyecto={setProyecto}
-              searchTerm={searchTerm}
+              proyecto={proyecto}
             />
           )}
         </div>
